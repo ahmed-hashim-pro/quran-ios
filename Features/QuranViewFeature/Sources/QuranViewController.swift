@@ -224,11 +224,16 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
 
     func dismissSearch(completion: @escaping () -> Void) {
         if let navigationController, navigationController.viewControllers.contains(self), navigationController.topViewController !== self {
+            // The search controller, deactivating as it leaves, shows the bar again after viewWillAppear hid it.
+            let returned = { [weak navigationController] in
+                navigationController?.setNavigationBarHidden(true, animated: false)
+                completion()
+            }
             navigationController.popToViewController(self, animated: true)
             if let coordinator = navigationController.transitionCoordinator {
-                coordinator.animate(alongsideTransition: nil) { _ in completion() }
+                coordinator.animate(alongsideTransition: nil) { _ in returned() }
             } else {
-                completion()
+                returned()
             }
         } else {
             dismiss(animated: true, completion: completion)
