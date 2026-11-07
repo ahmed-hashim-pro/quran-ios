@@ -22,6 +22,7 @@ import NotesFeature
 import QuranContentFeature
 import QuranKit
 import ReadingService
+import SearchFeature
 #if QURAN_SYNC
 import ReadingBookmarkMenuFeature
 #endif
@@ -105,6 +106,7 @@ public struct QuranBuilder {
         #endif
         interactorDeps.tagAyah = tagAyah
         interactorDeps.audioDownloadsBuilder = AudioDownloadsBuilder(container: container)
+        interactorDeps.searchBuilder = SearchBuilder(container: container)
         let interactor = QuranInteractor(deps: interactorDeps, input: input)
         let viewController = QuranViewController(interactor: interactor)
         return viewController

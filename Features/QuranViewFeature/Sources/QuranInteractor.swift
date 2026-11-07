@@ -29,6 +29,7 @@ import QuranKit
 import QuranText
 import QuranTextKit
 import ReadingService
+import SearchFeature
 #if QURAN_SYNC
 import ReadingBookmarkMenuFeature
 #endif
@@ -77,6 +78,8 @@ protocol QuranPresentable: UIViewController {
     func presentTranslationsSelection(_ viewController: UIViewController)
     func presentGoTo(_ viewController: UIViewController)
     func presentAudioManager(_ viewController: UIViewController)
+    func presentSearch(_ viewController: UIViewController)
+    func dismissSearch(completion: @escaping () -> Void)
 
     func dismissWordPointer(_ viewController: UIViewController)
     func dismissPresentedViewController(completion: (() -> Void)?)
@@ -111,6 +114,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         #endif
         var tagAyah: QuranAyahTagger?
         var audioDownloadsBuilder: AudioDownloadsBuilder?
+        var searchBuilder: SearchBuilder?
     }
 
     // MARK: Lifecycle
@@ -197,6 +201,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         state.verticalScrolling = .alwaysOff
         state.goTo = .alwaysOn
         state.audioManager = deps.audioDownloadsBuilder == nil ? .alwaysOff : .alwaysOn
+        state.search = deps.searchBuilder == nil ? .alwaysOff : .alwaysOn
         let model = MoreMenuModel(isWordPointerActive: isWordPointerActive, state: state)
         let viewController = deps.moreMenuBuilder.build(withListener: self, model: model)
         presenter?.presentMoreMenu(viewController)
@@ -211,6 +216,26 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
 
     func onTranslationsSelectionsTapped() {
         presentTranslationsSelection()
+    }
+
+    /// quran_android's reader menu searches too; a result turns this reader to it.
+    func onSearchTapped() {
+        guard let builder = deps.searchBuilder else {
+            return
+        }
+        let navigator = ReaderSearchNavigator { [weak self] page, ayah in
+            self?.presenter?.dismissSearch {
+                if let ayah {
+                    self?.contentViewModel?.navigate(to: ayah)
+                } else {
+                    self?.contentViewModel?.navigate(to: page)
+                }
+            }
+        }
+        searchNavigator = navigator
+        presenter?.dismissPresentedViewController { [weak self] in
+            self?.presenter?.presentSearch(builder.build(withListener: navigator))
+        }
     }
 
     func onAudioManagerTapped() {
@@ -554,6 +579,8 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
 
     private var visiblePageCancellable: AnyCancellable?
     private var markerPopup = QuranMarkerPopup()
+    /// Search holds its navigator weakly.
+    private var searchNavigator: ReaderSearchNavigator?
 
     private var contentViewController: ContentViewController?
 

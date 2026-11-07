@@ -19,6 +19,7 @@ public protocol MoreMenuListener: AnyObject {
     func onIsWordPointerActiveUpdated(to isWordPointerActive: Bool)
     func onGoToTapped()
     func onAudioManagerTapped()
+    func onSearchTapped()
 }
 
 extension MoreMenuListener {
@@ -26,6 +27,8 @@ extension MoreMenuListener {
     public func onGoToTapped() {}
     /// Only menus that turn on `MoreMenuControlsState.audioManager` show the row.
     public func onAudioManagerTapped() {}
+    /// Only menus that turn on `MoreMenuControlsState.search` show the row.
+    public func onSearchTapped() {}
 }
 
 @MainActor
@@ -203,6 +206,11 @@ final class MoreMenuViewModel: ObservableObject {
     #endif
 
     @Published var appearanceMode: AppearanceMode
+
+    func openSearch() {
+        logger.info("More Menu: search tapped")
+        listener?.onSearchTapped()
+    }
 
     func openAudioManager() {
         logger.info("More Menu: audio manager tapped")

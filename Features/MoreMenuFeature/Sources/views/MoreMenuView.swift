@@ -45,6 +45,25 @@ private struct MoreMenuRootView: View {
                         .buttonStyle(BackgroundHighlightingStyle())
                         .background(Color.systemBackground)
 
+                        if state.search == .alwaysOff {
+                            empty
+                        }
+                    }
+
+                    viewBasedOn(state.search) {
+                        if state.goTo != .alwaysOff {
+                            divider
+                                .background(Color.systemBackground)
+                        }
+                        Button {
+                            store.openSearch()
+                        } label: {
+                            MoreMenuSearch()
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(BackgroundHighlightingStyle())
+                        .background(Color.systemBackground)
+
                         empty
                     }
 

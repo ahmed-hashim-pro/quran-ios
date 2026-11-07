@@ -199,6 +199,42 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         present(translationsNavigationController, animated: true, completion: nil)
     }
 
+    func presentSearch(_ viewController: UIViewController) {
+        let focus = {
+            // The bar only takes focus once its controller is active, a turn of the run loop later.
+            let controller = viewController.navigationItem.searchController
+            controller?.isActive = true
+            DispatchQueue.main.async { controller?.searchBar.becomeFirstResponder() }
+        }
+        if let navigationController {
+            navigationController.pushViewController(viewController, animated: true)
+            if let coordinator = navigationController.transitionCoordinator {
+                coordinator.animate(alongsideTransition: nil) { _ in focus() }
+            } else {
+                focus()
+            }
+        } else {
+            let navigationController = BaseNavigationController(rootViewController: viewController)
+            viewController.navigationItem.leftBarButtonItem = NavigationBarButton.close { [weak self] in
+                self?.dismiss(animated: true)
+            }
+            present(navigationController, animated: true, completion: focus)
+        }
+    }
+
+    func dismissSearch(completion: @escaping () -> Void) {
+        if let navigationController, navigationController.viewControllers.contains(self), navigationController.topViewController !== self {
+            navigationController.popToViewController(self, animated: true)
+            if let coordinator = navigationController.transitionCoordinator {
+                coordinator.animate(alongsideTransition: nil) { _ in completion() }
+            } else {
+                completion()
+            }
+        } else {
+            dismiss(animated: true, completion: completion)
+        }
+    }
+
     func presentAudioManager(_ viewController: UIViewController) {
         let navigationController = BaseNavigationController(rootViewController: viewController)
         viewController.navigationItem.leftBarButtonItem = NavigationBarButton.close { [weak self] in
