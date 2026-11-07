@@ -114,8 +114,36 @@ private struct FontSizeView: View {
     }
 }
 
+private struct NightBrightnessSettings: View {
+    @Binding var text: Int
+    @Binding var background: Int
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            SectionHeader(header: lAndroid("prefs_night_mode_title"))
+
+            LevelSlider(
+                title: lAndroid("prefs_night_mode_text_brightness_title"),
+                subtitle: lAndroid("prefs_night_mode_text_brightness_summary"),
+                value: $text,
+                range: NightBrightness.textRange,
+                scale: NightBrightness.textRange.upperBound
+            )
+
+            LevelSlider(
+                title: lAndroid("prefs_night_mode_background_brightness_title"),
+                subtitle: lAndroid("prefs_night_mode_background_brightness_summary"),
+                value: $background,
+                range: NightBrightness.backgroundRange,
+                scale: NightBrightness.textRange.upperBound
+            )
+        }
+    }
+}
+
 private struct MoreMenuThemeSettingsView: View {
     @StateObject var viewModel = MoreMenuThemeSettingsViewModel()
+    @Environment(\.colorScheme) private var colorScheme
 
     let showFontSize: Bool
     let showArabicFontSize: Bool
@@ -176,6 +204,13 @@ private struct MoreMenuThemeSettingsView: View {
 
                         ThemeStyleSelector(selectedStyle: $viewModel.themeStyle)
                     }
+
+                    Divider()
+                        .padding(.vertical, compactVerticalPadding)
+
+                    NightBrightnessSettings(text: $viewModel.nightTextBrightness, background: $viewModel.nightBackgroundBrightness)
+                        // Like quran_android, the levels only apply, and only change, in night mode.
+                        .disabled(!(colorScheme == .dark || viewModel.themeStyle == .quiet))
                 }
                 .padding()
             }

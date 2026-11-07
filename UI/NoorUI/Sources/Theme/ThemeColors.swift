@@ -13,10 +13,10 @@ import UIKit
 public struct ThemeColors: Equatable {
     // MARK: Public
 
-    public var background: Color { resolve(style.backgroundColor) }
-    public var text: Color { resolve(style.textColor) }
-    public var secondaryText: Color { resolve(style.secondaryTextColor) }
-    public var secondaryBackground: Color { resolve(style.secondaryBackgroundColor) }
+    public var background: Color { resolve(style.backgroundColor, night: night.adjustBackground) }
+    public var text: Color { resolve(style.textColor, night: night.adjustText) }
+    public var secondaryText: Color { resolve(style.secondaryTextColor, night: night.adjustText) }
+    public var secondaryBackground: Color { resolve(style.secondaryBackgroundColor, night: night.adjustBackground) }
     public var pageSeparatorBackground: Color { resolve(style.pageSeparatorBackground) }
     public var pageSeparatorLine: Color { resolve(style.pageSeparatorLine) }
 
@@ -24,11 +24,20 @@ public struct ThemeColors: Equatable {
 
     let style: ThemeStyle
     let colorScheme: ColorScheme
+    var nightBrightness: NightBrightness = .default
 
     // MARK: Private
 
+    private var night: NightBrightness {
+        colorScheme == .dark || style == .quiet ? nightBrightness : .default
+    }
+
     private func resolve(_ color: UIColor) -> Color {
         Color(color.resolvedColor(with: colorScheme.traitCollection))
+    }
+
+    private func resolve(_ color: UIColor, night adjust: (UIColor) -> UIColor) -> Color {
+        Color(adjust(color.resolvedColor(with: colorScheme.traitCollection)))
     }
 }
 
@@ -43,7 +52,7 @@ extension EnvironmentValues {
     }
 
     public var themeColors: ThemeColors {
-        ThemeColors(style: themeStyle, colorScheme: themeColorScheme)
+        ThemeColors(style: themeStyle, colorScheme: themeColorScheme, nightBrightness: nightBrightness)
     }
 
     var themeColorSchemeOverride: ColorScheme? {

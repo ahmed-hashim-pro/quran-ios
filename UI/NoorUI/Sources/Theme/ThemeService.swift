@@ -43,6 +43,22 @@ public class ThemeService {
         }
     }
 
+    /// Values outside Android's ranges are clamped.
+    public var nightBrightness: NightBrightness {
+        get { NightBrightness(text: preferenceNightTextBrightness, background: preferenceNightBackgroundBrightness) }
+        set {
+            preferenceNightTextBrightness = newValue.text
+            preferenceNightBackgroundBrightness = newValue.background
+        }
+    }
+
+    public var nightBrightnessPublisher: AnyPublisher<NightBrightness, Never> {
+        $preferenceNightTextBrightness.merge(with: $preferenceNightBackgroundBrightness)
+            .map { [weak self] _ in self?.nightBrightness ?? .default }
+            .removeDuplicates()
+            .eraseToAnyPublisher()
+    }
+
     public var appearanceModePublisher: AnyPublisher<AppearanceMode, Never> {
         $preferenceAppearanceMode
     }
@@ -68,6 +84,16 @@ public class ThemeService {
         rawToValue: { $0.flatMap { ThemeStyle(rawValue: $0) } ?? .paper },
         valueToRaw: { $0.rawValue }
     )
+
+    // quran_android's keys and defaults.
+    private static let nightTextBrightness = PreferenceKey<Int>(key: "nightModeTextBrightness", defaultValue: NightBrightness.default.text)
+    private static let nightBackgroundBrightness = PreferenceKey<Int>(key: "nightModeBackgroundBrightness", defaultValue: NightBrightness.default.background)
+
+    @Preference(nightTextBrightness)
+    private var preferenceNightTextBrightness: Int
+
+    @Preference(nightBackgroundBrightness)
+    private var preferenceNightBackgroundBrightness: Int
 
     @TransformedPreference(appearanceModeRaw, transformer: appearanceModeTransformer)
     private var preferenceAppearanceMode: AppearanceMode

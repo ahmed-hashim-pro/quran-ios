@@ -73,17 +73,21 @@ private struct ThemeStylePopulator: ViewModifier {
     func body(content: Content) -> some View {
         content
             .environment(\.themeStyle, viewModel.themeStyle)
+            .environment(\.nightBrightness, viewModel.nightBrightness)
     }
 }
 
 @MainActor
 private final class ThemeStylePopulatorViewModel: ObservableObject {
     @Published var themeStyle: ThemeStyle
+    @Published var nightBrightness: NightBrightness
     private let themeService = ThemeService.shared
 
     init() {
         themeStyle = themeService.themeStyle
+        nightBrightness = themeService.nightBrightness
         themeService.themeStylePublisher.assign(to: &$themeStyle)
+        themeService.nightBrightnessPublisher.assign(to: &$nightBrightness)
     }
 }
 

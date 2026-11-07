@@ -18,6 +18,8 @@ final class MoreMenuThemeSettingsViewModel: ObservableObject {
     private let themeService = ThemeService.shared
     @Published var themeStyle: ThemeStyle
     @Published var appearanceMode: AppearanceMode
+    @Published var nightTextBrightness: Int
+    @Published var nightBackgroundBrightness: Int
 
     private let fontSizePreferences = FontSizePreferences.shared
     @Published var arabicFontSize: FontSize
@@ -26,6 +28,8 @@ final class MoreMenuThemeSettingsViewModel: ObservableObject {
     init() {
         themeStyle = themeService.themeStyle
         appearanceMode = themeService.appearanceMode
+        nightTextBrightness = themeService.nightBrightness.text
+        nightBackgroundBrightness = themeService.nightBrightness.background
 
         translationFontSize = fontSizePreferences.translationFontSize
         arabicFontSize = fontSizePreferences.arabicFontSize
@@ -43,6 +47,14 @@ final class MoreMenuThemeSettingsViewModel: ObservableObject {
             .sink { [weak self] newValue in
                 logger.info("More Menu: set appearanceMode \(newValue)")
                 self?.themeService.appearanceMode = newValue
+            }
+            .store(in: &cancellables)
+
+        $nightTextBrightness.combineLatest($nightBackgroundBrightness)
+            .dropFirst()
+            .removeDuplicates { $0 == $1 }
+            .sink { [weak self] text, background in
+                self?.themeService.nightBrightness = NightBrightness(text: text, background: background)
             }
             .store(in: &cancellables)
 
