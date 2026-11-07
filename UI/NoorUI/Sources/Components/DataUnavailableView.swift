@@ -11,10 +11,12 @@ import SwiftUI
 public struct DataUnavailableView: View {
     // MARK: Lifecycle
 
-    public init(title: String, text: String, image: NoorSystemImage) {
+    /// `action`, when given, is a button below the text that offers a way forward.
+    public init(title: String, text: String, image: NoorSystemImage, action: (title: String, perform: () -> Void)? = nil) {
         self.title = title
         self.text = text
         self.image = image
+        self.action = action
     }
 
     // MARK: Public
@@ -30,6 +32,11 @@ public struct DataUnavailableView: View {
                     .padding()
                 Text(text)
                     .multilineTextAlignment(.center)
+                if let action {
+                    Button(action.title, action: action.perform)
+                        .buttonStyle(.borderedProminent)
+                        .padding()
+                }
             }
             .foregroundColor(.secondaryLabel)
             .padding(.horizontal)
@@ -45,6 +52,7 @@ public struct DataUnavailableView: View {
     let title: String
     let text: String
     let image: NoorSystemImage
+    let action: (title: String, perform: () -> Void)?
 }
 
 struct DataUnavailableView_Previews: PreviewProvider {

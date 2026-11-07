@@ -28,7 +28,8 @@ struct SearchView: View {
             quranFont: viewModel.reading.quranFont,
             start: { await viewModel.start() },
             search: { viewModel.search(for: $0) },
-            selectSearchResult: { viewModel.select(searchResult: $0.result, source: $0.source) }
+            selectSearchResult: { viewModel.select(searchResult: $0.result, source: $0.source) },
+            getTranslations: viewModel.getTranslations
         )
     }
 }
@@ -48,6 +49,7 @@ private struct SearchViewUI: View {
     let start: AsyncAction
     let search: ItemAction<String>
     let selectSearchResult: ItemAction<(result: SearchResult, source: SearchResults.Source)>
+    var getTranslations: (() -> Void)?
 
     var body: some View {
         Group {
@@ -77,7 +79,8 @@ private struct SearchViewUI: View {
         DataUnavailableView(
             title: lFormat("no_results", table: .android, term),
             text: "",
-            image: .search
+            image: .search,
+            action: getTranslations.map { (title: lAndroid("get_translations"), perform: $0) }
         )
     }
 

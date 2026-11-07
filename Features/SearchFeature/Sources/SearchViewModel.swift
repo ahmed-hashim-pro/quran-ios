@@ -23,8 +23,10 @@ final class SearchViewModel: ObservableObject {
     init(
         analytics: AnalyticsLibrary,
         searchService: CompositeSearcher,
-        navigateTo: @escaping (AyahNumber) -> Void
+        navigateTo: @escaping (AyahNumber) -> Void,
+        getTranslations: (() -> Void)? = nil
     ) {
+        self.getTranslations = getTranslations
         self.analytics = analytics
         self.searchService = searchService
         reading = ReadingPreferences.shared.reading
@@ -34,6 +36,9 @@ final class SearchViewModel: ObservableObject {
     }
 
     // MARK: Internal
+
+    /// quran_android offers translations when a search finds nothing, so their text can be searched too.
+    let getTranslations: (() -> Void)?
 
     @Published var error: Error? = nil
 

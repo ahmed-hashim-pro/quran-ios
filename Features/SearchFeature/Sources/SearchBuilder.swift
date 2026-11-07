@@ -23,7 +23,8 @@ public struct SearchBuilder {
 
     // MARK: Public
 
-    public func build(withListener listener: QuranNavigator) -> UIViewController {
+    /// With `getTranslations`, a search that finds nothing offers translations, as quran_android does.
+    public func build(withListener listener: QuranNavigator, getTranslations: (() -> Void)? = nil) -> UIViewController {
         let viewModel = SearchViewModel(
             analytics: container.analytics,
             searchService: CompositeSearcher(
@@ -32,7 +33,8 @@ public struct SearchBuilder {
             ),
             navigateTo: { [weak listener] verse in
                 listener?.navigateTo(ayah: verse, lastPage: nil)
-            }
+            },
+            getTranslations: getTranslations
         )
         let viewController = SearchViewController(viewModel: viewModel)
         return viewController
