@@ -9,6 +9,7 @@
 import Analytics
 import AnnotationsService
 import AudioBannerFeature
+import AudioDownloadsFeature
 import AyahMenuFeature
 #if QURAN_SYNC
 import BookmarksFeature
@@ -75,6 +76,7 @@ protocol QuranPresentable: UIViewController {
     func presentQuranContent(_ viewController: ContentViewController)
     func presentTranslationsSelection(_ viewController: UIViewController)
     func presentGoTo(_ viewController: UIViewController)
+    func presentAudioManager(_ viewController: UIViewController)
 
     func dismissWordPointer(_ viewController: UIViewController)
     func dismissPresentedViewController(completion: (() -> Void)?)
@@ -108,6 +110,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         let noteService: NoteService
         #endif
         var tagAyah: QuranAyahTagger?
+        var audioDownloadsBuilder: AudioDownloadsBuilder?
     }
 
     // MARK: Lifecycle
@@ -193,6 +196,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         // TODO: Enable vertical scrolling.
         state.verticalScrolling = .alwaysOff
         state.goTo = .alwaysOn
+        state.audioManager = deps.audioDownloadsBuilder == nil ? .alwaysOff : .alwaysOn
         let model = MoreMenuModel(isWordPointerActive: isWordPointerActive, state: state)
         let viewController = deps.moreMenuBuilder.build(withListener: self, model: model)
         presenter?.presentMoreMenu(viewController)
@@ -207,6 +211,15 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
 
     func onTranslationsSelectionsTapped() {
         presentTranslationsSelection()
+    }
+
+    func onAudioManagerTapped() {
+        guard let builder = deps.audioDownloadsBuilder else {
+            return
+        }
+        presenter?.dismissPresentedViewController { [weak self] in
+            self?.presenter?.presentAudioManager(builder.build())
+        }
     }
 
     func onGoToTapped() {

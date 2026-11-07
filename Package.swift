@@ -907,6 +907,7 @@ private func featuresTargets() -> [[Target]] {
             "Crashing",
             "UIx",
             "AudioBannerFeature",
+            "AudioDownloadsFeature",
             "QuranContentFeature",
             "AyahMenuFeature",
             "MoreMenuFeature",

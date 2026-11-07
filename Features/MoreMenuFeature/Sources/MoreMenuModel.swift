@@ -46,5 +46,6 @@ public struct MoreMenuControlsState {
     public var twoPages = ConfigState.conditional
     public var verticalScrolling = ConfigState.conditional
     public var markerPopups = ConfigState.conditional
+    public var audioManager = ConfigState.alwaysOff
     public var theme = ConfigState.conditional
 }

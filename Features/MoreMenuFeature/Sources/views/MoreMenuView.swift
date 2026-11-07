@@ -128,6 +128,19 @@ private struct MoreMenuRootView: View {
                         empty
                     }
 
+                    viewBasedOn(state.audioManager) {
+                        Button {
+                            store.openAudioManager()
+                        } label: {
+                            MoreMenuAudioManager()
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(BackgroundHighlightingStyle())
+                        .background(Color.systemBackground)
+
+                        empty
+                    }
+
                     viewBasedOn(state.theme) {
                         MoreMenuThemeSettingsMenuItem(
                             showFontSize: isVisible(state.fontSize, customCondition: store.mode == .translation),

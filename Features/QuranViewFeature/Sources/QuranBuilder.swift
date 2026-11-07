@@ -9,6 +9,7 @@
 import AnnotationsService
 import AppDependencies
 import AudioBannerFeature
+import AudioDownloadsFeature
 import AyahMenuFeature
 #if QURAN_SYNC
 import BookmarksFeature
@@ -103,6 +104,7 @@ public struct QuranBuilder {
         )
         #endif
         interactorDeps.tagAyah = tagAyah
+        interactorDeps.audioDownloadsBuilder = AudioDownloadsBuilder(container: container)
         let interactor = QuranInteractor(deps: interactorDeps, input: input)
         let viewController = QuranViewController(interactor: interactor)
         return viewController

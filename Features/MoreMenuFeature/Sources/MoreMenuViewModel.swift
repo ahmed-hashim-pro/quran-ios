@@ -18,11 +18,14 @@ public protocol MoreMenuListener: AnyObject {
     func onTranslationsSelectionsTapped()
     func onIsWordPointerActiveUpdated(to isWordPointerActive: Bool)
     func onGoToTapped()
+    func onAudioManagerTapped()
 }
 
 extension MoreMenuListener {
     /// Only menus that turn on `MoreMenuControlsState.goTo` show the row.
     public func onGoToTapped() {}
+    /// Only menus that turn on `MoreMenuControlsState.audioManager` show the row.
+    public func onAudioManagerTapped() {}
 }
 
 @MainActor
@@ -190,6 +193,11 @@ final class MoreMenuViewModel: ObservableObject {
     #endif
 
     @Published var appearanceMode: AppearanceMode
+
+    func openAudioManager() {
+        logger.info("More Menu: audio manager tapped")
+        listener?.onAudioManagerTapped()
+    }
 
     func goTo() {
         logger.info("More Menu: go to tapped")

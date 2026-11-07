@@ -199,6 +199,14 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         present(translationsNavigationController, animated: true, completion: nil)
     }
 
+    func presentAudioManager(_ viewController: UIViewController) {
+        let navigationController = BaseNavigationController(rootViewController: viewController)
+        viewController.navigationItem.leftBarButtonItem = NavigationBarButton.close { [weak self] in
+            self?.dismiss(animated: true)
+        }
+        present(navigationController, animated: true)
+    }
+
     func presentGoTo(_ viewController: UIViewController) {
         present(viewController, animated: true)
     }
