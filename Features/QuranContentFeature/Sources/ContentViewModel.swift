@@ -125,6 +125,8 @@ public final class ContentViewModel: ObservableObject {
 
     /// Turns to `ayah` and highlights it for a moment.
     public func navigate(to ayah: AyahNumber) {
+        // The page first: the highlighter forgets a verse that is not on the visible pages.
+        visiblePages = [ayah.page]
         navigationHighlighter.navigate(to: ayah)
     }
 

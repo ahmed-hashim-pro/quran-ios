@@ -98,6 +98,26 @@ final class ContentViewModelTests: XCTestCase {
         XCTAssertNil(service.overlays.navigationHighlight)
     }
 
+    func testNavigatingToAnAyahTurnsToItsPageAndHighlightsIt() {
+        let ayah = Quran.hafsMadani1405.suras[18].verses[9]
+        let sut = makeSUT()
+
+        sut.navigate(to: ayah)
+
+        XCTAssertEqual(sut.visiblePages, [ayah.page])
+        XCTAssertEqual(service.overlays.navigationTarget, ayah)
+        XCTAssertEqual(service.overlays.navigationHighlight, ayah)
+    }
+
+    func testNavigatingToAPageTurnsToIt() {
+        let page = Quran.hafsMadani1405.pages[297]
+        let sut = makeSUT()
+
+        sut.navigate(to: page)
+
+        XCTAssertEqual(sut.visiblePages, [page])
+    }
+
     func testModeChangeScrollsRebuiltContentToTheNavigatedVerse() {
         let sut = makeSUT()
         sut.onPageContentAppear(pagingStrategy: .singlePage)
