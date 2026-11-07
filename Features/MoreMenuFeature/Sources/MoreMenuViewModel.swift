@@ -34,6 +34,7 @@ final class MoreMenuViewModel: ObservableObject {
         arabicFontSize = fontSizePreferences.arabicFontSize
         twoPagesEnabled = preferences.twoPagesEnabled
         verticalScrollingEnabled = preferences.verticalScrollingEnabled
+        markerPopupsEnabled = preferences.displayMarkerPopup
         showLinePageDividers = preferences.showLinePageDividers
         showLinePageSidelines = preferences.showLinePageSidelines
         showArabicText = preferences.showArabicInTranslation
@@ -97,6 +98,14 @@ final class MoreMenuViewModel: ObservableObject {
             .sink { [weak self] newValue in
                 logger.info("More Menu: set vertical scrolling enabled \(newValue)")
                 self?.preferences.verticalScrollingEnabled = newValue
+            }
+            .store(in: &cancellables)
+
+        $markerPopupsEnabled
+            .dropFirst()
+            .sink { [weak self] newValue in
+                logger.info("More Menu: set marker popups enabled \(newValue)")
+                self?.preferences.displayMarkerPopup = newValue
             }
             .store(in: &cancellables)
 
@@ -166,6 +175,7 @@ final class MoreMenuViewModel: ObservableObject {
 
     @Published var twoPagesEnabled: Bool
     @Published var verticalScrollingEnabled: Bool
+    @Published var markerPopupsEnabled: Bool
     @Published var showLinePageDividers: Bool
     @Published var showLinePageSidelines: Bool
     @Published var showArabicText: Bool

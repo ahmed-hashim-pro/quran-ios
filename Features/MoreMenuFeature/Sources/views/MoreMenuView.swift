@@ -109,6 +109,12 @@ private struct MoreMenuRootView: View {
                         MoreMenuVerticalScrolling(enabled: $store.verticalScrollingEnabled)
                     }
 
+                    viewBasedOn(state.markerPopups) {
+                        MoreMenuMarkerPopups(enabled: $store.markerPopupsEnabled)
+                            .background(Color.systemBackground)
+                        empty
+                    }
+
                     viewBasedOn(state.theme) {
                         MoreMenuThemeSettingsMenuItem(
                             showFontSize: isVisible(state.fontSize, customCondition: store.mode == .translation),

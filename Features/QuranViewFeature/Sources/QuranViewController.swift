@@ -310,6 +310,14 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         interactor.didDismissPopover()
     }
 
+    func showMarkerPopup(_ text: String) {
+        markerPopupView?.removeFromSuperview()
+        let popup = QuranMarkerPopupView(text: text)
+        markerPopupView = popup
+        let bottomInset = max(bottomBarsHeight, view.safeAreaInsets.bottom)
+        popup.show(in: view, bottomOffset: bottomInset + Self.markerPopupSpacing)
+    }
+
     func setVisiblePages(_ pages: [Page]) {
         title = pages.map { $0.startSura.localizedName(withPrefix: true) }.joined(separator: l("list.separator.comma"))
         updateTitle(pages)
@@ -348,7 +356,10 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
 
     // MARK: - Navigation bars
 
+    private static let markerPopupSpacing: CGFloat = 56
+
     private var barsTimer: Timing.Timer?
+    private weak var markerPopupView: QuranMarkerPopupView?
 
     // MARK: - Navigation Bar
 

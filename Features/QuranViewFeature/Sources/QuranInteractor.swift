@@ -52,6 +52,7 @@ protocol QuranPresentable: UIViewController {
     var bottomBarsHeight: CGFloat { get }
 
     func setVisiblePages(_ pages: [Page])
+    func showMarkerPopup(_ text: String)
     #if QURAN_SYNC
     func updateReadingBookmark(_ bookmark: PlacedReadingBookmark?)
     #else
@@ -516,6 +517,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
     private var wordPointer: WordPointerViewController?
 
     private var visiblePageCancellable: AnyCancellable?
+    private var markerPopup = QuranMarkerPopup()
 
     private var contentViewController: ContentViewController?
 
@@ -543,6 +545,9 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         logger.info("Quran: set visible pages \(pages)")
         presenter?.setVisiblePages(pages)
         showPageBookmarkIfNeeded(for: pages)
+        if let marker = markerPopup.marker(forVisiblePages: pages), contentStatePreferences.displayMarkerPopup {
+            presenter?.showMarkerPopup(marker)
+        }
     }
 
     private func loadContent() {

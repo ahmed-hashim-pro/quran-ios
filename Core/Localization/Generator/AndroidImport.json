@@ -21,6 +21,8 @@
     "play",
     "play_each_verse",
     "play_verses_range",
+    "prefs_display_marker_summary",
+    "prefs_display_marker_title",
     "prefs_night_mode_background_brightness_summary",
     "prefs_night_mode_background_brightness_title",
     "prefs_night_mode_text_brightness_summary",
