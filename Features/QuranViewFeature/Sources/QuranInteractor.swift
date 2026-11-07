@@ -218,7 +218,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
             return
         }
         presenter?.dismissPresentedViewController { [weak self] in
-            self?.presenter?.presentAudioManager(builder.build())
+            self?.presenter?.presentAudioManager(builder.build(showsStreamingToggle: true))
         }
     }
 

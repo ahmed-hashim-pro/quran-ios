@@ -19,7 +19,10 @@ struct AudioDownloadsView: View {
             editMode: $viewModel.editMode,
             error: $viewModel.error,
             items: viewModel.items.sorted(),
-            showsStreamHint: !viewModel.streamingEnabled,
+            showsStreamHint: !viewModel.streamingEnabled && !viewModel.showsStreamingToggle,
+            streaming: viewModel.showsStreamingToggle
+                ? Binding(get: { viewModel.streamingEnabled }, set: { viewModel.setStreamingEnabled($0) })
+                : nil,
             start: { await viewModel.start() },
             downloadAction: { await viewModel.startDownloading($0.reciter) },
             cancelAction: { await viewModel.cancelDownloading($0.reciter) },
@@ -34,6 +37,7 @@ private struct AudioDownloadsViewUI: View {
     @Binding var error: Error?
     let items: [AudioDownloadItem]
     let showsStreamHint: Bool
+    var streaming: Binding<Bool>?
     let start: AsyncAction
     let downloadAction: AsyncItemAction<AudioDownloadItem>
     let cancelAction: AsyncItemAction<AudioDownloadItem>
@@ -45,6 +49,12 @@ private struct AudioDownloadsViewUI: View {
         // The hint sits under the first section shown, while streaming is off.
         let streamHint = showsStreamHint ? l("audio-manager.stream-hint") : nil
         NoorList {
+            if let streaming {
+                NoorBasicSection {
+                    NoorToggleRow(title: l("audio.streaming.title"), image: .stream, isOn: streaming)
+                }
+            }
+
             AudioDownloadsSection(
                 title: l("reciters.downloaded"),
                 footer: streamHint,

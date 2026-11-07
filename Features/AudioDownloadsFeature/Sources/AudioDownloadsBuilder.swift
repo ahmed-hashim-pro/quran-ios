@@ -24,7 +24,8 @@ public struct AudioDownloadsBuilder {
 
     // MARK: Public
 
-    public func build() -> UIViewController {
+    /// `showsStreamingToggle` puts the Stream Audio switch on this screen, for apps without upstream's Audio Playback settings.
+    public func build(showsStreamingToggle: Bool = false) -> UIViewController {
         let downloader = QuranAudioDownloader(
             baseURL: container.filesAppHost,
             downloader: container.downloadManager
@@ -37,6 +38,7 @@ public struct AudioDownloadsBuilder {
             sizeInfoRetriever: sizeInfoRetriever,
             recitersRetriever: ReciterDataRetriever()
         )
+        viewModel.showsStreamingToggle = showsStreamingToggle
         let viewController = AudioDownloadsViewController(viewModel: viewModel)
         viewModel.showSuras = { [weak viewController, container] reciter in
             let suras = ReciterSurasViewModel(
