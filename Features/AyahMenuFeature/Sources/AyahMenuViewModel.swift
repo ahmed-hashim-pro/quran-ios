@@ -40,6 +40,12 @@ public protocol AyahMenuListener: AnyObject {
     func showCollectionEditor(for verses: [AyahNumber])
     func showReadingBookmarkMenu(for ayah: AyahNumber, in sourceView: UIView, at point: CGPoint)
     #endif
+    func tagVerses(_ verses: [AyahNumber])
+}
+
+extension AyahMenuListener {
+    /// Only menus built with `AyahMenuInput.canTag` offer tagging.
+    public func tagVerses(_ verses: [AyahNumber]) {}
 }
 
 // MARK: - ViewModel
@@ -59,6 +65,7 @@ final class AyahMenuViewModel {
         #else
         let noteService: NoteService
         #endif
+        var canTag = false
         let quranContentStatePreferences = QuranContentStatePreferences.shared
     }
 
@@ -232,6 +239,13 @@ final class AyahMenuViewModel {
         logger.info("AyahMenu: edit notes. Verses: \(deps.verses.map(\.nonLocalizedDescription).joined(separator: ", "))")
         await listener?.showNoteEditor(for: deps.verses)
         #endif
+    }
+
+    var canTag: Bool { deps.canTag }
+
+    func tag() {
+        logger.info("AyahMenu: tag. Verses: \(deps.verses.map(\.nonLocalizedDescription).joined(separator: ", "))")
+        listener?.tagVerses(deps.verses)
     }
 
     func showTranslation() {

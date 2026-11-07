@@ -22,8 +22,10 @@ public enum AyahMenuUI {
             showTranslation: @escaping AsyncAction,
             copy: @escaping AsyncAction,
             share: @escaping AsyncAction,
-            showReadingBookmarkMenu: @escaping AsyncAction
+            showReadingBookmarkMenu: @escaping AsyncAction,
+            tag: AsyncAction? = nil
         ) {
+            self.tag = tag
             self.play = play
             self.repeatVerses = repeatVerses
             self.bookmark = bookmark
@@ -43,8 +45,10 @@ public enum AyahMenuUI {
             deleteNote: @escaping AsyncAction,
             showTranslation: @escaping AsyncAction,
             copy: @escaping AsyncAction,
-            share: @escaping AsyncAction
+            share: @escaping AsyncAction,
+            tag: AsyncAction? = nil
         ) {
+            self.tag = tag
             self.play = play
             self.repeatVerses = repeatVerses
             self.highlight = highlight
@@ -70,6 +74,8 @@ public enum AyahMenuUI {
         let showTranslation: AsyncAction
         let copy: AsyncAction
         let share: AsyncAction
+        /// Shown only when the app tags bookmarks, as quran_android does.
+        let tag: AsyncAction?
         #if QURAN_SYNC
         let showReadingBookmarkMenu: AsyncAction
         #endif

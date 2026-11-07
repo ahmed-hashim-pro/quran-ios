@@ -107,6 +107,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         let pageBookmarkService: PageBookmarkService
         let noteService: NoteService
         #endif
+        var tagAyah: QuranAyahTagger?
     }
 
     // MARK: Lifecycle
@@ -383,7 +384,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         })
         #endif
         #if QURAN_SYNC
-        let input = AyahMenuInput(
+        var input = AyahMenuInput(
             sourceView: sourceView,
             pointInView: point,
             verses: verses,
@@ -395,15 +396,29 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
                 : nil
         )
         #else
-        let input = AyahMenuInput(
+        var input = AyahMenuInput(
             sourceView: sourceView,
             pointInView: point,
             verses: verses,
             notes: notesInteractingVerses(verses)
         )
         #endif
+        input.canTag = deps.tagAyah != nil
         let ayahMenuViewController = deps.ayahMenuBuilder.build(withListener: self, input: input)
         presenter?.presentAyahMenu(ayahMenuViewController, in: sourceView, at: point)
+    }
+
+    /// quran_android tags the first ayah of a selection.
+    func tagVerses(_ verses: [AyahNumber]) {
+        guard let tagAyah = deps.tagAyah, let ayah = verses.first else {
+            return
+        }
+        contentViewModel?.removeAyahMenuHighlight()
+        presenter?.dismissPresentedViewController { [weak self] in
+            if let presenter = self?.presenter {
+                tagAyah(ayah, presenter)
+            }
+        }
     }
 
     func dismissAyahMenu() {

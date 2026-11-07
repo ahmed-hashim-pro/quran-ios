@@ -36,6 +36,7 @@ final class AyahMenuViewController: UIViewController {
         super.viewDidLoad()
 
         #if QURAN_SYNC
+        let tag: AsyncAction? = viewModel.canTag ? { [weak self] in self?.viewModel.tag() } : nil
         let actions = AyahMenuUI.Actions(
             play: { [weak self] in self?.viewModel.play() },
             repeatVerses: { [weak self] in self?.viewModel.repeatVerses() },
@@ -45,9 +46,11 @@ final class AyahMenuViewController: UIViewController {
             showTranslation: { [weak self] in self?.viewModel.showTranslation() },
             copy: { [weak self] in await self?.viewModel.copy() },
             share: { [weak self] in await self?.viewModel.share() },
-            showReadingBookmarkMenu: { [weak self] in self?.viewModel.showReadingBookmarkMenu() }
+            showReadingBookmarkMenu: { [weak self] in self?.viewModel.showReadingBookmarkMenu() },
+            tag: tag
         )
         #else
+        let tag: AsyncAction? = viewModel.canTag ? { [weak self] in self?.viewModel.tag() } : nil
         let actions = AyahMenuUI.Actions(
             play: { [weak self] in self?.viewModel.play() },
             repeatVerses: { [weak self] in self?.viewModel.repeatVerses() },
@@ -56,7 +59,8 @@ final class AyahMenuViewController: UIViewController {
             deleteNote: { [weak self] in await self?.viewModel.deleteNotes() },
             showTranslation: { [weak self] in self?.viewModel.showTranslation() },
             copy: { [weak self] in await self?.viewModel.copy() },
-            share: { [weak self] in await self?.viewModel.share() }
+            share: { [weak self] in await self?.viewModel.share() },
+            tag: tag
         )
         #endif
         let highlightingColor = viewModel.highlightingColor

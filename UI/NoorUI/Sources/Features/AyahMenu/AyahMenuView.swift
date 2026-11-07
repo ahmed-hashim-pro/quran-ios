@@ -202,6 +202,14 @@ private struct AyahMenuViewList: View {
                 }
                 #endif
 
+                if let tag = dataObject.actions.tag {
+                    Divider()
+                        .padding(.leading)
+                    Row(title: lAndroid("tag_dlg_title"), action: tag) {
+                        Image(systemName: "tag")
+                    }
+                }
+
                 Divider()
             }
 

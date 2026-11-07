@@ -32,6 +32,21 @@ final class AyahMenuLegacyViewModelTests: XCTestCase {
         XCTAssertTrue(listener.didDismiss)
     }
 
+    func test_tag_handsTheSelectionToTheListener() {
+        let sut = makeSUT(canTag: true)
+        let listener = ListenerSpy()
+        sut.listener = listener
+
+        XCTAssertTrue(sut.canTag)
+        sut.tag()
+
+        XCTAssertEqual(listener.taggedVerses, sut.verses)
+    }
+
+    func test_tagIsOffUnlessTheMenuAsksForIt() {
+        XCTAssertFalse(makeSUT().canTag)
+    }
+
     func test_share_sharesSelectedVerseText() async throws {
         let originalQuranMode = QuranContentStatePreferences.shared.quranMode
         defer { QuranContentStatePreferences.shared.quranMode = originalQuranMode }
@@ -81,6 +96,7 @@ final class AyahMenuLegacyViewModelTests: XCTestCase {
             AyahNumber(quran: .hafsMadani1405, sura: 1, ayah: 7)!,
             AyahNumber(quran: .hafsMadani1405, sura: 2, ayah: 1)!,
         ],
+        canTag: Bool = false,
         quranFileURL: URL? = nil
     ) -> AyahMenuViewModel {
         let unavailableDatabase = URL(fileURLWithPath: "/tmp/unavailable-quran-database")
@@ -93,7 +109,8 @@ final class AyahMenuLegacyViewModelTests: XCTestCase {
                 quranFileURL: quranFileURL ?? unavailableDatabase
             ),
             notes: [],
-            noteService: NoteService(persistence: persistence, analytics: AnalyticsLibrarySpy())
+            noteService: NoteService(persistence: persistence, analytics: AnalyticsLibrarySpy()),
+            canTag: canTag
         ))
     }
 }
@@ -135,6 +152,7 @@ private final class ListenerSpy: AyahMenuListener {
     private(set) var didDismiss = false
     private(set) var sharedLines: [String]?
     private(set) var shownErrors: [Error] = []
+    private(set) var taggedVerses: [AyahNumber]?
 
     func dismissAyahMenu() {
         didDismiss = true
@@ -153,5 +171,8 @@ private final class ListenerSpy: AyahMenuListener {
     func showTranslation(_ verses: [AyahNumber]) {}
     func showNoteEditor(for verses: [AyahNumber]) async {}
     func deleteNotes(in verses: [AyahNumber]) async {}
+    func tagVerses(_ verses: [AyahNumber]) {
+        taggedVerses = verses
+    }
 }
 #endif

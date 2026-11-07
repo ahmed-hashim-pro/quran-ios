@@ -48,6 +48,11 @@ public struct AyahMenuInput {
     }
     #endif
 
+    // MARK: Public
+
+    /// Shows quran_android's Tag row, which the listener answers in `tagVerses(_:)`.
+    public var canTag = false
+
     // MARK: Internal
 
     let sourceView: UIView
@@ -85,7 +90,8 @@ public struct AyahMenuBuilder {
             notes: input.notes,
             highlightVerses: input.highlightVerses,
             bookmarkedVerses: input.bookmarkedVerses,
-            readingBookmark: input.readingBookmark
+            readingBookmark: input.readingBookmark,
+            canTag: input.canTag
         )
         #else
         let deps = AyahMenuViewModel.Deps(
@@ -94,7 +100,8 @@ public struct AyahMenuBuilder {
             verses: input.verses,
             textRetriever: textRetriever,
             notes: input.notes,
-            noteService: container.noteService()
+            noteService: container.noteService(),
+            canTag: input.canTag
         )
         #endif
         let viewModel = AyahMenuViewModel(deps: deps)

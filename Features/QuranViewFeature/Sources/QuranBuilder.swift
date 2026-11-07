@@ -29,12 +29,17 @@ import TranslationVerseFeature
 import UIKit
 import WordPointerFeature
 
+/// Tags `ayah` in the app's own bookmark tags, presenting from `presenter`.
+public typealias QuranAyahTagger = @MainActor (_ ayah: AyahNumber, _ presenter: UIViewController) -> Void
+
 @MainActor
 public struct QuranBuilder {
     // MARK: Lifecycle
 
-    public init(container: AppDependencies) {
+    /// The ayah menu offers quran_android's Tag only when `tagAyah` is given.
+    public init(container: AppDependencies, tagAyah: QuranAyahTagger? = nil) {
         self.container = container
+        self.tagAyah = tagAyah
     }
 
     // MARK: Public
@@ -54,7 +59,7 @@ public struct QuranBuilder {
             quran: quran,
             overlayService: overlayService
         )
-        let interactorDeps = QuranInteractor.Deps(
+        var interactorDeps = QuranInteractor.Deps(
             quran: quran,
             overlayService: overlayService,
             ayahMenuBuilder: AyahMenuBuilder(container: container),
@@ -79,7 +84,7 @@ public struct QuranBuilder {
             quran: quran,
             overlayService: overlayService
         )
-        let interactorDeps = QuranInteractor.Deps(
+        var interactorDeps = QuranInteractor.Deps(
             quran: quran,
             overlayService: overlayService,
             ayahMenuBuilder: AyahMenuBuilder(container: container),
@@ -97,6 +102,7 @@ public struct QuranBuilder {
             noteService: noteService
         )
         #endif
+        interactorDeps.tagAyah = tagAyah
         let interactor = QuranInteractor(deps: interactorDeps, input: input)
         let viewController = QuranViewController(interactor: interactor)
         return viewController
@@ -105,4 +111,5 @@ public struct QuranBuilder {
     // MARK: Internal
 
     let container: AppDependencies
+    let tagAyah: QuranAyahTagger?
 }
