@@ -44,7 +44,15 @@ final class ReciterSurasViewModel: ObservableObject {
     // MARK: Internal
 
     @Published var error: Error?
-    @Published var editMode: EditMode = .inactive
+    @Published var editMode: EditMode = .inactive {
+        didSet {
+            if editMode != .active {
+                selection.removeAll()
+            }
+        }
+    }
+
+    @Published var selection: Set<Sura> = []
     @Published private(set) var downloaded: Set<Sura> = []
     @Published private(set) var progress: [Sura: Double] = [:]
 
@@ -80,6 +88,42 @@ final class ReciterSurasViewModel: ObservableObject {
         } catch {
             progress.removeValue(forKey: sura)
             self.error = error
+        }
+    }
+
+    /// quran_android's Download all: every surah in the range that is neither on the phone nor on its way.
+    func download(from first: Sura, to last: Sura) async {
+        let (start, end) = first <= last ? (first, last) : (last, first)
+        for sura in start.array(to: end) where !downloaded.contains(sura) && progress[sura] == nil {
+            await download(sura)
+        }
+    }
+
+    func toggleSelection(_ sura: Sura) {
+        if selection.contains(sura) { selection.remove(sura) } else { selection.insert(sura) }
+    }
+
+    var selectionToDownload: [Sura] {
+        selection.filter { !downloaded.contains($0) && progress[$0] == nil }.sorted()
+    }
+
+    var selectionToDelete: [Sura] {
+        selection.filter { downloaded.contains($0) }.sorted()
+    }
+
+    func downloadSelection() async {
+        let suras = selectionToDownload
+        editMode = .inactive
+        for sura in suras {
+            await download(sura)
+        }
+    }
+
+    func deleteSelection() async {
+        let suras = selectionToDelete
+        editMode = .inactive
+        for sura in suras {
+            await delete(sura)?()
         }
     }
 

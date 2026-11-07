@@ -2,7 +2,11 @@
   "_comment": "Overrides were machine-translated and require human review. They are applied after Android locale resources.",
   "requiredKeys": [
     "audio_manager",
+    "audio_manager_delete_selection",
+    "audio_manager_download_all",
+    "audio_manager_download_selection",
     "audio_manager_files_downloaded",
+    "available_translations",
     "bookmarks_list_empty",
     "cancel",
     "dialog_ok",
