@@ -57,16 +57,13 @@ final class QuranMarkerPopupView: UIView {
     // MARK: Lifecycle
 
     init(text: String) {
+        self.text = text
         super.init(frame: .zero)
         isUserInteractionEnabled = false
         backgroundColor = UIColor.label.withAlphaComponent(0.85)
         layer.cornerCurve = .continuous
 
-        label.text = text
-        label.font = .preferredFont(forTextStyle: .headline)
         label.adjustsFontForContentSizeCategory = true
-        label.textColor = .systemBackground
-        label.textAlignment = .center
         addAutoLayoutSubview(label)
         label.vc.edges(leading: 18, trailing: 18, top: 9, bottom: 9)
 
@@ -89,6 +86,15 @@ final class QuranMarkerPopupView: UIView {
 
     /// `bottomOffset` is measured from the container's bottom edge.
     func show(in container: UIView, bottomOffset: CGFloat) {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .center
+        // Every part of the localized text is isolated, which leaves the label no direction of its own.
+        paragraph.baseWritingDirection = container.effectiveUserInterfaceLayoutDirection == .rightToLeft ? .rightToLeft : .leftToRight
+        label.attributedText = NSAttributedString(string: text, attributes: [
+            .font: UIFont.preferredFont(forTextStyle: .headline),
+            .foregroundColor: UIColor.systemBackground,
+            .paragraphStyle: paragraph,
+        ])
         alpha = 0
         container.addAutoLayoutSubview(self)
         NSLayoutConstraint.activate([
@@ -96,7 +102,7 @@ final class QuranMarkerPopupView: UIView {
             bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -bottomOffset),
             widthAnchor.constraint(lessThanOrEqualTo: container.widthAnchor, constant: -32),
         ])
-        UIAccessibility.post(notification: .announcement, argument: label.text)
+        UIAccessibility.post(notification: .announcement, argument: text)
         NoorAnimation.animate { self.alpha = 1 } completion: {
             DispatchQueue.main.asyncAfter(deadline: .now() + Self.visibleDuration) { [weak self] in
                 NoorAnimation.animate { self?.alpha = 0 } completion: {
@@ -110,5 +116,6 @@ final class QuranMarkerPopupView: UIView {
 
     private static let visibleDuration: TimeInterval = 1.6
 
+    private let text: String
     private let label = UILabel()
 }
