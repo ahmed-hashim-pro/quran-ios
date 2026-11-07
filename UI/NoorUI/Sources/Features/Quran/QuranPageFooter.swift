@@ -24,5 +24,6 @@ public struct QuranPageFooter: View {
         }
         .padding(.top, ContentDimension.interSpacing)
         .readableInsetsPadding(readableInsetEdges)
+        .quranPageInfoVisibility()
     }
 }

@@ -44,6 +44,7 @@ final class MoreMenuViewModel: ObservableObject {
         twoPagesEnabled = preferences.twoPagesEnabled
         verticalScrollingEnabled = preferences.verticalScrollingEnabled
         markerPopupsEnabled = preferences.displayMarkerPopup
+        pageInfoEnabled = themeService.showsPageInfo
         showLinePageDividers = preferences.showLinePageDividers
         showLinePageSidelines = preferences.showLinePageSidelines
         showArabicText = preferences.showArabicInTranslation
@@ -107,6 +108,14 @@ final class MoreMenuViewModel: ObservableObject {
             .sink { [weak self] newValue in
                 logger.info("More Menu: set vertical scrolling enabled \(newValue)")
                 self?.preferences.verticalScrollingEnabled = newValue
+            }
+            .store(in: &cancellables)
+
+        $pageInfoEnabled
+            .dropFirst()
+            .sink { [weak self] newValue in
+                logger.info("More Menu: set page info visible \(newValue)")
+                self?.themeService.showsPageInfo = newValue
             }
             .store(in: &cancellables)
 
@@ -185,6 +194,7 @@ final class MoreMenuViewModel: ObservableObject {
     @Published var twoPagesEnabled: Bool
     @Published var verticalScrollingEnabled: Bool
     @Published var markerPopupsEnabled: Bool
+    @Published var pageInfoEnabled: Bool
     @Published var showLinePageDividers: Bool
     @Published var showLinePageSidelines: Bool
     @Published var showArabicText: Bool

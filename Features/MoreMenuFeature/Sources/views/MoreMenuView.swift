@@ -125,6 +125,10 @@ private struct MoreMenuRootView: View {
                     viewBasedOn(state.markerPopups) {
                         MoreMenuMarkerPopups(enabled: $store.markerPopupsEnabled)
                             .background(Color.systemBackground)
+                        divider
+                            .background(Color.systemBackground)
+                        MoreMenuPageInfo(enabled: $store.pageInfoEnabled)
+                            .background(Color.systemBackground)
                         empty
                     }
 

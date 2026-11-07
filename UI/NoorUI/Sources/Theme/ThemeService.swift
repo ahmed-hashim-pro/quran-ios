@@ -59,6 +59,16 @@ public class ThemeService {
             .eraseToAnyPublisher()
     }
 
+    /// quran_android's Show page info: the surah, juz and page number drawn around each page.
+    public var showsPageInfo: Bool {
+        get { preferenceShowsPageInfo }
+        set { preferenceShowsPageInfo = newValue }
+    }
+
+    public var showsPageInfoPublisher: AnyPublisher<Bool, Never> {
+        $preferenceShowsPageInfo
+    }
+
     public var appearanceModePublisher: AnyPublisher<AppearanceMode, Never> {
         $preferenceAppearanceMode
     }
@@ -88,6 +98,11 @@ public class ThemeService {
     // quran_android's keys and defaults.
     private static let nightTextBrightness = PreferenceKey<Int>(key: "nightModeTextBrightness", defaultValue: NightBrightness.default.text)
     private static let nightBackgroundBrightness = PreferenceKey<Int>(key: "nightModeBackgroundBrightness", defaultValue: NightBrightness.default.background)
+
+    private static let showsPageInfo = PreferenceKey<Bool>(key: "overlayPageInfo", defaultValue: true)
+
+    @Preference(showsPageInfo)
+    private var preferenceShowsPageInfo: Bool
 
     @Preference(nightTextBrightness)
     private var preferenceNightTextBrightness: Int

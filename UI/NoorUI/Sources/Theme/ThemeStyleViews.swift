@@ -74,6 +74,7 @@ private struct ThemeStylePopulator: ViewModifier {
         content
             .environment(\.themeStyle, viewModel.themeStyle)
             .environment(\.nightBrightness, viewModel.nightBrightness)
+            .environment(\.showsQuranPageInfo, viewModel.showsPageInfo)
     }
 }
 
@@ -81,11 +82,14 @@ private struct ThemeStylePopulator: ViewModifier {
 private final class ThemeStylePopulatorViewModel: ObservableObject {
     @Published var themeStyle: ThemeStyle
     @Published var nightBrightness: NightBrightness
+    @Published var showsPageInfo: Bool
     private let themeService = ThemeService.shared
 
     init() {
         themeStyle = themeService.themeStyle
         nightBrightness = themeService.nightBrightness
+        showsPageInfo = themeService.showsPageInfo
+        themeService.showsPageInfoPublisher.assign(to: &$showsPageInfo)
         themeService.themeStylePublisher.assign(to: &$themeStyle)
         themeService.nightBrightnessPublisher.assign(to: &$nightBrightness)
     }

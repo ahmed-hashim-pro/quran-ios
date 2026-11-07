@@ -32,6 +32,7 @@ public struct QuranPageHeader: View {
         }
         .readableInsetsPadding(readableInsetEdges)
         .padding(.bottom, ContentDimension.interSpacing)
+        .quranPageInfoVisibility()
     }
 
     // MARK: Private
