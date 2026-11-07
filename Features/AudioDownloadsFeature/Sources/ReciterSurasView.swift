@@ -185,17 +185,26 @@ private struct SuraRangeSheet: View {
     var body: some View {
         NavigationView {
             Form {
-                picker(lAndroid("from"), selection: $first)
-                picker(lAndroid("to"), selection: $last)
+                Section {
+                    picker(lAndroid("from"), selection: $first)
+                    picker(lAndroid("to"), selection: $last)
+                }
+                // Below the pickers, as on Android: in the bar its long title would crowd out the sheet's own.
+                Section {
+                    Button { download(first, last) } label: {
+                        Text(lAndroid("audio_manager_download_selection")).frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                }
             }
             .navigationTitle(lAndroid("audio_manager_download_all"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(lAndroid("cancel"), action: cancel)
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(lAndroid("audio_manager_download_selection")) { download(first, last) }
                 }
             }
         }
