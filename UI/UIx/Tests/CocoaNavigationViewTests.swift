@@ -6,7 +6,7 @@ import XCTest
 final class CocoaNavigationViewTests: XCTestCase {
     func testNavigatorDoesNotRetainNavigationController() {
         var navigationController: UINavigationController? = UINavigationController()
-        weak let weakNavigationController = navigationController
+        weak var weakNavigationController = navigationController
         let navigator = Navigator(navigationController: navigationController!)
 
         navigationController = nil
