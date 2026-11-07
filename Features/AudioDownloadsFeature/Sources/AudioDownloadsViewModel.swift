@@ -66,6 +66,9 @@ final class AudioDownloadsViewModel: ObservableObject {
             }
     }
 
+    /// Opens one reciter's surahs, when the app offers per-surah downloads as quran_android does.
+    var showSuras: ((Reciter) -> Void)?
+
     func start() async {
         async let downloads: () = observeRunningDownloads()
         async let reading: () = observeReadingChanges()

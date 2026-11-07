@@ -23,7 +23,8 @@ struct AudioDownloadsView: View {
             start: { await viewModel.start() },
             downloadAction: { await viewModel.startDownloading($0.reciter) },
             cancelAction: { await viewModel.cancelDownloading($0.reciter) },
-            deleteAction: { @Sendable item in viewModel.deleteReciterFiles(item.reciter) }
+            deleteAction: { @Sendable item in viewModel.deleteReciterFiles(item.reciter) },
+            selectAction: viewModel.showSuras.map { show in { show($0.reciter) } }
         )
     }
 }
@@ -37,6 +38,7 @@ private struct AudioDownloadsViewUI: View {
     let downloadAction: AsyncItemAction<AudioDownloadItem>
     let cancelAction: AsyncItemAction<AudioDownloadItem>
     let deleteAction: ItemDeletionAction<AudioDownloadItem>
+    var selectAction: ItemAction<AudioDownloadItem>?
 
     var body: some View {
         let downloadedItems = items.filter(\.canDelete)
@@ -51,7 +53,8 @@ private struct AudioDownloadsViewUI: View {
                     NoorListItem(
                         title: .text(item.reciter.localizedName),
                         subtitle: .init(text: .text(item.size.formattedString()), location: .bottom),
-                        accessory: accessory(item)
+                        accessory: accessory(item),
+                        action: select(item)
                     )
                 },
                 onDelete: { item in deleteAction(item) }
@@ -64,7 +67,8 @@ private struct AudioDownloadsViewUI: View {
                 listItem: { item in
                     NoorListItem(
                         title: .text(item.reciter.localizedName),
-                        accessory: accessory(item)
+                        accessory: accessory(item),
+                        action: select(item)
                     )
                 },
                 onDelete: nil
@@ -73,6 +77,13 @@ private struct AudioDownloadsViewUI: View {
         .task { await start() }
         .errorAlert(error: $error)
         .environment(\.editMode, $editMode)
+    }
+
+    func select(_ item: AudioDownloadItem) -> NoorListItem.TapAction? {
+        guard let selectAction, editMode != .active else {
+            return nil
+        }
+        return .sync { selectAction(item) }
     }
 
     func accessory(_ item: AudioDownloadItem) -> NoorListItem.Accessory? {

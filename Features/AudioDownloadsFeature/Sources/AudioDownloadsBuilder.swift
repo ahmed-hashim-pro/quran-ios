@@ -7,8 +7,11 @@
 //
 
 import AppDependencies
+import Foundation
 import QuranAudioKit
+import ReadingService
 import ReciterService
+import SystemDependencies
 import UIKit
 
 @MainActor
@@ -35,6 +38,15 @@ public struct AudioDownloadsBuilder {
             recitersRetriever: ReciterDataRetriever()
         )
         let viewController = AudioDownloadsViewController(viewModel: viewModel)
+        viewModel.showSuras = { [weak viewController, container] reciter in
+            let suras = ReciterSurasViewModel(
+                files: SuraAudioFiles(reciter: reciter, baseURL: container.filesAppHost) { FileManager.default.fileExists(atPath: $0.path) },
+                quran: ReadingPreferences.shared.reading.quran,
+                downloader: downloader,
+                fileSystem: DefaultFileSystem()
+            )
+            viewController?.navigationController?.pushViewController(ReciterSurasViewController(viewModel: suras), animated: true)
+        }
         return viewController
     }
 
