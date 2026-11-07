@@ -32,6 +32,7 @@ public struct MoreMenuControlsState {
 
     // MARK: Public
 
+    public var goTo = ConfigState.alwaysOff
     public var mode = ConfigState.conditional
     public var translationsSelection = ConfigState.conditional
     public var arabicText = ConfigState.conditional

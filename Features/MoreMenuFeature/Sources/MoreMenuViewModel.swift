@@ -17,6 +17,12 @@ import WordTextService
 public protocol MoreMenuListener: AnyObject {
     func onTranslationsSelectionsTapped()
     func onIsWordPointerActiveUpdated(to isWordPointerActive: Bool)
+    func onGoToTapped()
+}
+
+extension MoreMenuListener {
+    /// Only menus that turn on `MoreMenuControlsState.goTo` show the row.
+    public func onGoToTapped() {}
 }
 
 @MainActor
@@ -184,6 +190,11 @@ final class MoreMenuViewModel: ObservableObject {
     #endif
 
     @Published var appearanceMode: AppearanceMode
+
+    func goTo() {
+        logger.info("More Menu: go to tapped")
+        listener?.onGoToTapped()
+    }
 
     func selectTranslations() {
         logger.info("More Menu: translations selections tapped")

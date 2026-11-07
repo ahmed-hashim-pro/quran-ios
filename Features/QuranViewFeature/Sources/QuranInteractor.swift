@@ -74,6 +74,7 @@ protocol QuranPresentable: UIViewController {
     func presentWordPointer(_ viewController: UIViewController)
     func presentQuranContent(_ viewController: ContentViewController)
     func presentTranslationsSelection(_ viewController: UIViewController)
+    func presentGoTo(_ viewController: UIViewController)
 
     func dismissWordPointer(_ viewController: UIViewController)
     func dismissPresentedViewController(completion: (() -> Void)?)
@@ -190,6 +191,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         state.linePageDisplay = readingPreferences.reading == .indoPak ? .conditional : .alwaysOff
         // TODO: Enable vertical scrolling.
         state.verticalScrolling = .alwaysOff
+        state.goTo = .alwaysOn
         let model = MoreMenuModel(isWordPointerActive: isWordPointerActive, state: state)
         let viewController = deps.moreMenuBuilder.build(withListener: self, model: model)
         presenter?.presentMoreMenu(viewController)
@@ -204,6 +206,12 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
 
     func onTranslationsSelectionsTapped() {
         presentTranslationsSelection()
+    }
+
+    func onGoToTapped() {
+        presenter?.dismissPresentedViewController { [weak self] in
+            self?.presentGoTo()
+        }
     }
 
     func highlightReadingAyah(_ ayah: AyahNumber?) {
@@ -568,6 +576,28 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
             return
         }
         showWordPointer(referenceView: presenter.pagesView)
+    }
+
+    private func presentGoTo() {
+        guard let start = visiblePages.min() else {
+            return
+        }
+        let controller = QuranGoToBuilder().build(start: start) { [weak self] target in
+            logger.info("Quran: go to \(target)")
+            self?.presenter?.dismissPresentedViewController {
+                self?.goTo(target)
+            }
+        }
+        presenter?.presentGoTo(controller)
+    }
+
+    private func goTo(_ target: QuranGoToTarget) {
+        switch target {
+        case .page(let page):
+            contentViewModel?.navigate(to: page)
+        case .ayah(let ayah):
+            contentViewModel?.navigate(to: ayah)
+        }
     }
 
     private func presentTranslationsSelection() {

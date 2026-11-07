@@ -119,6 +119,15 @@ public final class ContentViewModel: ObservableObject {
         }
     }
 
+    public func navigate(to page: Page) {
+        visiblePages = [page]
+    }
+
+    /// Turns to `ayah` and highlights it for a moment.
+    public func navigate(to ayah: AyahNumber) {
+        navigationHighlighter.navigate(to: ayah)
+    }
+
     public func removeAyahMenuHighlight() {
         longPressData = nil
     }

@@ -199,6 +199,10 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         present(translationsNavigationController, animated: true, completion: nil)
     }
 
+    func presentGoTo(_ viewController: UIViewController) {
+        present(viewController, animated: true)
+    }
+
     func presentAudioBanner(_ audioBanner: UIViewController) {
         addChild(audioBanner)
         quranView?.addAudioBannerView(audioBanner.view)

@@ -35,6 +35,19 @@ private struct MoreMenuRootView: View {
         PreferredContentSizeMatchesScrollView {
             ScrollView {
                 VStack(spacing: 0) {
+                    viewBasedOn(state.goTo) {
+                        Button {
+                            store.goTo()
+                        } label: {
+                            MoreMenuGoTo()
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(BackgroundHighlightingStyle())
+                        .background(Color.systemBackground)
+
+                        empty
+                    }
+
                     viewBasedOn(state.mode) {
                         MoreMenuModeSelector(mode: $store.mode)
                     }
