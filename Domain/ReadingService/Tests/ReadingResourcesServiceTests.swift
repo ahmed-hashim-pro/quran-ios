@@ -213,6 +213,22 @@ final class ReadingResourcesServiceTests: XCTestCase {
         try await service.prepare(reading) { _ in XCTFail("already on the phone") }
     }
 
+    func test_prepareThrowsAndKeepsNothingWhenTheDownloadFails() async throws {
+        let reading = Reading.shemerly
+        let remoteResource = try XCTUnwrap(remoteResources.resource(for: reading))
+        let preparing = Task { try await service.prepare(reading) { _ in } }
+        let download = try await runningDownload(initial: false)
+        session.failDownloadTask(download, error: URLError(.notConnectedToInternet))
+        do {
+            try await preparing.value
+            XCTFail("a failed download must throw")
+        } catch {}
+
+        XCTAssertFalse(remoteResource.hasSuccessFile(fileSystem: fileManager))
+        XCTAssertEqual(zipper.unzippedFiles, [])
+        XCTAssertEqual(ReadingPreferences.shared.reading, .hafs_1405)
+    }
+
     func test_downloadUpgrade() async throws {
         // Given
         let reading = Reading.hafs_1440
