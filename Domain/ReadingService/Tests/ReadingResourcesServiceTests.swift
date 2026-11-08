@@ -198,6 +198,21 @@ final class ReadingResourcesServiceTests: XCTestCase {
         XCTAssertEqual(zipper.unzippedFiles, [remoteResource.zipFile.url])
     }
 
+    func test_prepareDownloadsAReadingWithoutSwitchingToIt() async throws {
+        let reading = Reading.shemerly
+        let remoteResource = try XCTUnwrap(remoteResources.resource(for: reading))
+        let preparing = Task { try await service.prepare(reading) { _ in } }
+        let download = try await runningDownload(initial: false)
+        fileManager.files.insert(downloadURL)
+        await session.completeDownloadTask(download, location: downloadURL, totalBytes: 100, progressLoops: 1)
+        try await preparing.value
+
+        XCTAssertEqual(ReadingPreferences.shared.reading, .hafs_1405)
+        XCTAssertTrue(remoteResource.hasSuccessFile(fileSystem: fileManager))
+        XCTAssertEqual(zipper.unzippedFiles, [remoteResource.zipFile.url])
+        try await service.prepare(reading) { _ in XCTFail("already on the phone") }
+    }
+
     func test_downloadUpgrade() async throws {
         // Given
         let reading = Reading.hafs_1440

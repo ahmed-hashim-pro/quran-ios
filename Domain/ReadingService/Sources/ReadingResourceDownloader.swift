@@ -62,6 +62,15 @@ struct ReadingResourceDownloader {
         }
     }
 
+    func cancelDownload(of reading: Reading) async {
+        guard let resource = remoteResources?.resource(for: reading) else {
+            return
+        }
+        for runningReading in await runningReadings() where resource.matches(runningReading) {
+            await runningReading.cancel()
+        }
+    }
+
     // MARK: Private
 
     private func runningReadings() async -> [DownloadBatchResponse] {

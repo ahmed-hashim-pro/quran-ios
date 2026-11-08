@@ -88,6 +88,25 @@ public actor ReadingResourcesService {
         loadResourceInAsyncTask(preferences.reading)
     }
 
+    /// Downloads and unzips a reading without making it the current one, so the app can switch
+    /// once its pages are on the phone. Returns at once for a bundled or downloaded reading.
+    public func prepare(_ reading: Reading, onProgressChange: @Sendable @escaping (Double) -> Void) async throws {
+        guard let remoteResource = remoteResources?.resource(for: reading),
+              !remoteResource.hasSuccessFile(fileSystem: fileManager),
+              !recoverDownloadedResourceIfNeeded(remoteResource)
+        else {
+            return
+        }
+        removeDownloadedResource(for: reading)
+        try await downloader.download(reading, onProgressChange: onProgressChange)
+        try unzipFileIfNeeded(remoteResource)
+    }
+
+    /// Stops a download that `prepare` started.
+    public func cancelPreparing(_ reading: Reading) async {
+        await downloader.cancelDownload(of: reading)
+    }
+
     // MARK: Internal
 
     let preferenceLoadingCompleted: EventObserver?
