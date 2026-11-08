@@ -201,6 +201,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         // TODO: Enable vertical scrolling.
         state.verticalScrolling = .alwaysOff
         state.goTo = .alwaysOn
+        state.splitPageAndTranslation = .conditional
         state.audioManager = deps.audioDownloadsBuilder == nil ? .alwaysOff : .alwaysOn
         state.search = deps.searchBuilder == nil ? .alwaysOff : .alwaysOn
         state.mushafPrint = deps.choosePrint == nil ? .alwaysOff : .alwaysOn

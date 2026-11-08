@@ -46,6 +46,8 @@ public struct MoreMenuControlsState {
     public var orientation = ConfigState.conditional
     public var fontSize = ConfigState.conditional
     public var twoPages = ConfigState.conditional
+    /// Shown only where two pages are, and usable only while they are on.
+    public var splitPageAndTranslation = ConfigState.alwaysOff
     public var verticalScrolling = ConfigState.conditional
     public var markerPopups = ConfigState.conditional
     public var audioManager = ConfigState.alwaysOff

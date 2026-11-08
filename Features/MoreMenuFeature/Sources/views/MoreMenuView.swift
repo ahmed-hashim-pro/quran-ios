@@ -150,6 +150,12 @@ private struct MoreMenuRootView: View {
                         empty
                     }
 
+                    viewBasedOn(state.splitPageAndTranslation) {
+                        MoreMenuSplitPage(enabled: $store.splitPageAndTranslation, available: store.twoPagesEnabled)
+                            .background(Color.systemBackground)
+                        empty
+                    }
+
                     viewBasedOn(state.verticalScrolling) {
                         MoreMenuVerticalScrolling(enabled: $store.verticalScrollingEnabled)
                     }

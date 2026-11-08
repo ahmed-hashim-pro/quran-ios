@@ -89,6 +89,11 @@ public final class ContentViewModel: ObservableObject {
             updates: contentStatePreferences.$quranMode,
             set: { contentStatePreferences.quranMode = $0 }
         )
+        _splitPageAndTranslation = PublishedBinding(
+            wrappedValue: contentStatePreferences.splitPageAndTranslation,
+            updates: contentStatePreferences.$splitPageAndTranslation,
+            set: { contentStatePreferences.splitPageAndTranslation = $0 }
+        )
 
         $overlays
             .zip($overlays.dropFirst())
@@ -159,6 +164,7 @@ public final class ContentViewModel: ObservableObject {
     @PublishedBinding var quranMode: QuranMode
 
     @PublishedBinding var twoPagesEnabled: Bool
+    @PublishedBinding var splitPageAndTranslation: Bool
     @Published var geometryActions: [PageGeometryActions] = []
     #if QURAN_SYNC
     weak var menuSourceView: UIView?
@@ -168,6 +174,11 @@ public final class ContentViewModel: ObservableObject {
 
     var pagingStrategy: PagingStrategy {
         twoPagesEnabled ? .doublePage : .singlePage
+    }
+
+    /// quran_android shows one page beside its translation where translations would take two pages.
+    func showsPageBesideTranslation(in strategy: PagingStrategy) -> Bool {
+        strategy == .doublePage && quranMode == .translation && splitPageAndTranslation
     }
 
     func onViewLongPressStarted(at point: CGPoint, sourceView: UIView, verse: AyahNumber) {

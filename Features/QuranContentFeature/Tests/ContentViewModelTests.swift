@@ -118,6 +118,21 @@ final class ContentViewModelTests: XCTestCase {
         XCTAssertEqual(sut.visiblePages, [page])
     }
 
+    func testShowsAPageBesideItsTranslationOnlyWhereTranslationsTakeTwoPages() {
+        let preferences = QuranContentStatePreferences.shared
+        let previousSplit = preferences.splitPageAndTranslation
+        defer { preferences.splitPageAndTranslation = previousSplit }
+        let sut = makeSUT()
+
+        preferences.splitPageAndTranslation = true
+        XCTAssertFalse(sut.showsPageBesideTranslation(in: .doublePage), "Arabic pages stay two pages")
+        preferences.quranMode = .translation
+        XCTAssertTrue(sut.showsPageBesideTranslation(in: .doublePage))
+        XCTAssertFalse(sut.showsPageBesideTranslation(in: .singlePage), "portrait, or a screen too narrow for two")
+        preferences.splitPageAndTranslation = false
+        XCTAssertFalse(sut.showsPageBesideTranslation(in: .doublePage), "off by default, as on Android")
+    }
+
     func testModeChangeScrollsRebuiltContentToTheNavigatedVerse() {
         let sut = makeSUT()
         sut.onPageContentAppear(pagingStrategy: .singlePage)

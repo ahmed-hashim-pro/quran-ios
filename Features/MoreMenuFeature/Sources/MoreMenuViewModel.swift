@@ -48,6 +48,7 @@ final class MoreMenuViewModel: ObservableObject {
         translationFontSize = fontSizePreferences.translationFontSize
         arabicFontSize = fontSizePreferences.arabicFontSize
         twoPagesEnabled = preferences.twoPagesEnabled
+        splitPageAndTranslation = preferences.splitPageAndTranslation
         verticalScrollingEnabled = preferences.verticalScrollingEnabled
         markerPopupsEnabled = preferences.displayMarkerPopup
         pageInfoEnabled = themeService.showsPageInfo
@@ -60,6 +61,9 @@ final class MoreMenuViewModel: ObservableObject {
         appearanceMode = themeService.appearanceMode
 
         state.twoPages = (model.state.twoPages == .conditional && TwoPagesUtils.hasEnoughHorizontalSpace()) ? .conditional : .alwaysOff
+        if state.twoPages == .alwaysOff {
+            state.splitPageAndTranslation = .alwaysOff
+        }
 
         $mode
             .dropFirst()
@@ -106,6 +110,14 @@ final class MoreMenuViewModel: ObservableObject {
             .sink { [weak self] newValue in
                 logger.info("More Menu: set two pages enabled \(newValue)")
                 self?.preferences.twoPagesEnabled = newValue
+            }
+            .store(in: &cancellables)
+
+        $splitPageAndTranslation
+            .dropFirst()
+            .sink { [weak self] newValue in
+                logger.info("More Menu: set page beside translation \(newValue)")
+                self?.preferences.splitPageAndTranslation = newValue
             }
             .store(in: &cancellables)
 
@@ -198,6 +210,7 @@ final class MoreMenuViewModel: ObservableObject {
     @Published var arabicFontSize: FontSize
 
     @Published var twoPagesEnabled: Bool
+    @Published var splitPageAndTranslation: Bool
     @Published var verticalScrollingEnabled: Bool
     @Published var markerPopupsEnabled: Bool
     @Published var pageInfoEnabled: Bool

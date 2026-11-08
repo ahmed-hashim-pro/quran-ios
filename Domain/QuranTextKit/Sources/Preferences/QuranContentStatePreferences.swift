@@ -38,6 +38,10 @@ public struct QuranContentStatePreferences {
     @Preference(displayMarkerPopup)
     public var displayMarkerPopup: Bool
 
+    /// quran_android's Quran and translation in dual mode.
+    @Preference(splitPageAndTranslation)
+    public var splitPageAndTranslation: Bool
+
     #if QURAN_SYNC
     @TransformedPreference(ayahIndicatorVisibility, transformer: .rawRepresentable(defaultValue: .readingBookmark))
     public var ayahIndicatorVisibility: AyahIndicatorVisibility
@@ -53,6 +57,7 @@ public struct QuranContentStatePreferences {
     private static let showArabicInTranslation = PreferenceKey<Bool>(key: "showArabicInTranslation", defaultValue: true)
     /// quran_android's key and default.
     private static let displayMarkerPopup = PreferenceKey<Bool>(key: "displayMarkerPopup", defaultValue: true)
+    private static let splitPageAndTranslation = PreferenceKey<Bool>(key: "splitPageAndTranslation", defaultValue: false)
     #if QURAN_SYNC
     private static let ayahIndicatorVisibility = PreferenceKey<String>(key: "ayahIndicators", defaultValue: AyahIndicatorVisibility.readingBookmark.rawValue)
     #endif
