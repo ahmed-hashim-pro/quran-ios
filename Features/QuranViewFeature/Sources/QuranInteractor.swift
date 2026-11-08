@@ -113,6 +113,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         let noteService: NoteService
         #endif
         var tagAyah: QuranAyahTagger?
+        var choosePrint: QuranPrintChooser?
         var audioDownloadsBuilder: AudioDownloadsBuilder?
         var searchBuilder: SearchBuilder?
     }
@@ -202,6 +203,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         state.goTo = .alwaysOn
         state.audioManager = deps.audioDownloadsBuilder == nil ? .alwaysOff : .alwaysOn
         state.search = deps.searchBuilder == nil ? .alwaysOff : .alwaysOn
+        state.mushafPrint = deps.choosePrint == nil ? .alwaysOff : .alwaysOn
         let model = MoreMenuModel(isWordPointerActive: isWordPointerActive, state: state)
         let viewController = deps.moreMenuBuilder.build(withListener: self, model: model)
         presenter?.presentMoreMenu(viewController)
@@ -235,6 +237,17 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         searchNavigator = navigator
         presenter?.dismissPresentedViewController { [weak self] in
             self?.presenter?.presentSearch(builder.build(withListener: navigator))
+        }
+    }
+
+    func onMushafPrintTapped() {
+        guard let choosePrint = deps.choosePrint, let page = visiblePages.min() else {
+            return
+        }
+        presenter?.dismissPresentedViewController { [weak self] in
+            if let presenter = self?.presenter {
+                choosePrint(page, presenter)
+            }
         }
     }
 

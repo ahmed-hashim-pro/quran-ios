@@ -34,14 +34,19 @@ import WordPointerFeature
 /// Tags `ayah` in the app's own bookmark tags, presenting from `presenter`.
 public typealias QuranAyahTagger = @MainActor (_ ayah: AyahNumber, _ presenter: UIViewController) -> Void
 
+/// Lets the user pick another print, presenting from `presenter`; `page` is the one being read.
+public typealias QuranPrintChooser = @MainActor (_ page: Page, _ presenter: UIViewController) -> Void
+
 @MainActor
 public struct QuranBuilder {
     // MARK: Lifecycle
 
-    /// The ayah menu offers quran_android's Tag only when `tagAyah` is given.
-    public init(container: AppDependencies, tagAyah: QuranAyahTagger? = nil) {
+    /// The ayah menu offers quran_android's Tag only when `tagAyah` is given,
+    /// and the More menu a print choice only when `choosePrint` is.
+    public init(container: AppDependencies, tagAyah: QuranAyahTagger? = nil, choosePrint: QuranPrintChooser? = nil) {
         self.container = container
         self.tagAyah = tagAyah
+        self.choosePrint = choosePrint
     }
 
     // MARK: Public
@@ -105,6 +110,7 @@ public struct QuranBuilder {
         )
         #endif
         interactorDeps.tagAyah = tagAyah
+        interactorDeps.choosePrint = choosePrint
         interactorDeps.audioDownloadsBuilder = AudioDownloadsBuilder(container: container)
         interactorDeps.searchBuilder = SearchBuilder(container: container)
         let interactor = QuranInteractor(deps: interactorDeps, input: input)
@@ -116,4 +122,5 @@ public struct QuranBuilder {
 
     let container: AppDependencies
     let tagAyah: QuranAyahTagger?
+    let choosePrint: QuranPrintChooser?
 }

@@ -34,6 +34,7 @@ public struct MoreMenuControlsState {
 
     public var goTo = ConfigState.alwaysOff
     public var search = ConfigState.alwaysOff
+    public var mushafPrint = ConfigState.alwaysOff
     public var mode = ConfigState.conditional
     public var translationsSelection = ConfigState.conditional
     public var arabicText = ConfigState.conditional

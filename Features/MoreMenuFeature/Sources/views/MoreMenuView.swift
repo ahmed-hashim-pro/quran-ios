@@ -67,6 +67,19 @@ private struct MoreMenuRootView: View {
                         empty
                     }
 
+                    viewBasedOn(state.mushafPrint) {
+                        Button {
+                            store.chooseMushafPrint()
+                        } label: {
+                            MoreMenuMushafPrint()
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(BackgroundHighlightingStyle())
+                        .background(Color.systemBackground)
+
+                        empty
+                    }
+
                     viewBasedOn(state.mode) {
                         MoreMenuModeSelector(mode: $store.mode)
                     }

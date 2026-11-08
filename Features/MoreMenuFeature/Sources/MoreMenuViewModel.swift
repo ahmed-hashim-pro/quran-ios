@@ -20,6 +20,7 @@ public protocol MoreMenuListener: AnyObject {
     func onGoToTapped()
     func onAudioManagerTapped()
     func onSearchTapped()
+    func onMushafPrintTapped()
 }
 
 extension MoreMenuListener {
@@ -29,6 +30,8 @@ extension MoreMenuListener {
     public func onAudioManagerTapped() {}
     /// Only menus that turn on `MoreMenuControlsState.search` show the row.
     public func onSearchTapped() {}
+    /// Only menus that turn on `MoreMenuControlsState.mushafPrint` show the row.
+    public func onMushafPrintTapped() {}
 }
 
 @MainActor
@@ -210,6 +213,11 @@ final class MoreMenuViewModel: ObservableObject {
     func openSearch() {
         logger.info("More Menu: search tapped")
         listener?.onSearchTapped()
+    }
+
+    func chooseMushafPrint() {
+        logger.info("More Menu: mushaf print tapped")
+        listener?.onMushafPrintTapped()
     }
 
     func openAudioManager() {
