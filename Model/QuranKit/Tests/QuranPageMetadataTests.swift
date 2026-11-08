@@ -165,17 +165,50 @@ final class QuranPageMetadataTests: XCTestCase {
         XCTAssertEqual(QuranPageMushaf.madani1440.rawValue, 1)
         XCTAssertEqual(QuranPageMushaf.indoPak.rawValue, 2)
 
-        for reading in Reading.allReadings {
+        for reading in Reading.allReadings + Reading.androidReadings {
             let expectedMushaf: QuranPageMushaf = switch reading {
-            case .hafs_1405, .tajweed:
+            case .hafs_1405, .tajweed, .madinaColored:
                 .madani1405
             case .hafs_1421, .hafs_1439, .hafs_1440, .hafs_1441:
                 .madani1440
             case .indoPak:
                 .indoPak
+            case .newMadani:
+                .newMadani
+            case .naskh:
+                .naskh
+            case .shemerly:
+                .shemerly
+            case .qaloon, .warsh:
+                .qaloonWarsh
             }
             XCTAssertEqual(reading.quran.pageMushaf, expectedMushaf)
         }
+    }
+
+    func testAndroidPrintsHaveTheirPageCounts() {
+        XCTAssertEqual(Reading.androidReadings.count, 8)
+        XCTAssertEqual(Reading.naskh.quran.pages.count, 610, "pages 2 to 611: the covers are left out")
+        XCTAssertEqual(Reading.naskh.quran.pages.first?.pageNumber, 2)
+        XCTAssertEqual(Reading.shemerly.quran.pages.count, 521)
+        XCTAssertEqual(Reading.newMadani.quran.pages.count, 604)
+        XCTAssertEqual(Reading.qaloon.quran.pages.count, 604)
+        for reading in Reading.androidReadings {
+            let quran = reading.quran
+            XCTAssertEqual(quran.firstVerse.page.pageNumber, quran.pages.first?.pageNumber, "\(reading)")
+            XCTAssertEqual(quran.lastVerse, AyahNumber(quran: quran, sura: 114, ayah: 6), "\(reading)")
+            XCTAssertEqual(quran.verses.count, 6236, "\(reading) is numbered as Hafs")
+            XCTAssertEqual(quran.juzs.count, 30, "\(reading)")
+        }
+    }
+
+    func testAndroidPrintsKeepTheirLayoutsApart() {
+        let page = Page(quran: .hafsMadani1405, pageNumber: 592)!
+        XCTAssertEqual(page.firstVerse, AyahNumber(quran: .hafsMadani1405, sura: 87, ayah: 16))
+        let qaloon = Page(quran: .qaloonWarsh, pageNumber: 592)!
+        XCTAssertEqual(qaloon.firstVerse, AyahNumber(quran: .qaloonWarsh, sura: 87, ayah: 15))
+        XCTAssertEqual(QuranPageMapper(destination: .hafsShemerly).mapPage(Page(quran: .hafsMadani1405, pageNumber: 50)!)?.pageNumber, 41, "Al-Imran's first page")
+        XCTAssertEqual(QuranPageMapper(destination: .hafsNaskh).mapPage(Page(quran: .hafsMadani1405, pageNumber: 1)!)?.pageNumber, 2, "Al-Fatihah after the cover")
     }
 
     func testPageMapperPreservesTheSourceMadaniLayout() throws {

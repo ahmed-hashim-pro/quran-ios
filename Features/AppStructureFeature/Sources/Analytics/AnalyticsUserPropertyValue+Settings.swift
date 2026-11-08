@@ -63,6 +63,7 @@ extension AnalyticsUserPropertyValue {
         case .hafs_1441: "hafs_1441"
         case .hafs_1439: "hafs_1439"
         case .indoPak: "indopak"
+        case .madinaColored, .newMadani, .naskh, .shemerly, .qaloon, .warsh: String(describing: reading)
         }
     }
 

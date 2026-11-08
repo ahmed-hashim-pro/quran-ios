@@ -106,6 +106,12 @@ extension Reading {
         case .hafs_1441: return "hafs_1441"
         case .tajweed: return "tajweed"
         case .indoPak: return "naskh"
+        case .madinaColored: return "madina_colored"
+        case .newMadani: return "new_madani"
+        case .naskh: return "shl_naskh"
+        case .shemerly: return "shemerly"
+        case .qaloon: return "qaloon"
+        case .warsh: return "warsh"
         }
     }
 

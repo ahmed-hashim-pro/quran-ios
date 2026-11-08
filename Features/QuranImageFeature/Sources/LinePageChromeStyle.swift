@@ -17,6 +17,8 @@ enum LinePageChromeStyle: Equatable {
             self = .blueChrome
         case .hafs_1405, .hafs_1421, .hafs_1440, .hafs_1441, .tajweed, .indoPak:
             self = .greenChrome
+        case .madinaColored, .newMadani, .naskh, .shemerly, .qaloon, .warsh:
+            self = .greenChrome
         }
     }
 }

@@ -35,6 +35,23 @@ public final class Quran: Hashable, @unchecked Sendable {
         raw: IndoPakQuranReadingInfoRawData(),
         pageMushaf: .indoPak
     )
+    public static let hafsNewMadani = Quran(
+        raw: NewMadaniQuranReadingInfoRawData(),
+        pageMushaf: .newMadani
+    )
+    public static let hafsNaskh = Quran(
+        raw: NaskhQuranReadingInfoRawData(),
+        pageMushaf: .naskh
+    )
+    public static let hafsShemerly = Quran(
+        raw: ShemerlyQuranReadingInfoRawData(),
+        pageMushaf: .shemerly
+    )
+    /// Qaloon and Warsh pages, numbered as Hafs so translations and audio still line up.
+    public static let qaloonWarsh = Quran(
+        raw: QaloonWarshQuranReadingInfoRawData(),
+        pageMushaf: .qaloonWarsh
+    )
 
     public let pageMushaf: QuranPageMushaf
 

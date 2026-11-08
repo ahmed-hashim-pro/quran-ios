@@ -15,11 +15,23 @@ public enum Reading: Int {
     case hafs_1441 = 4
     case hafs_1439 = 5
     case indoPak = 6
+    // quran_android's prints, downloaded from its servers. Saved as a preference, so they sit far from upstream's numbers.
+    case madinaColored = 101
+    case newMadani = 102
+    case naskh = 103
+    case shemerly = 104
+    case qaloon = 105
+    case warsh = 106
 
     // MARK: Public
 
     public static let allReadings: [Reading] = [
         .hafs_1405, .tajweed, .hafs_1421, .hafs_1440, .hafs_1439, .hafs_1441, .indoPak,
+    ]
+
+    /// quran_android's eight prints, in its order.
+    public static let androidReadings: [Reading] = [
+        .madinaColored, .hafs_1405, .newMadani, .tajweed, .naskh, .shemerly, .qaloon, .warsh,
     ]
 
     public var quran: Quran {
@@ -38,6 +50,16 @@ public enum Reading: Int {
             return .hafsMadani1405
         case .indoPak:
             return .hafsIndoPak
+        case .madinaColored:
+            return .hafsMadani1405
+        case .newMadani:
+            return .hafsNewMadani
+        case .naskh:
+            return .hafsNaskh
+        case .shemerly:
+            return .hafsShemerly
+        case .qaloon, .warsh:
+            return .qaloonWarsh
         }
     }
 
@@ -47,6 +69,8 @@ public enum Reading: Int {
         case .hafs_1421, .hafs_1439, .hafs_1441:
             true
         case .hafs_1405, .hafs_1440, .tajweed, .indoPak:
+            false
+        case .madinaColored, .newMadani, .naskh, .shemerly, .qaloon, .warsh:
             false
         }
     }
@@ -64,6 +88,8 @@ public enum Reading: Int {
         case .indoPak:
             return .indoPakLinePages
         case .hafs_1405, .hafs_1421, .hafs_1440, .tajweed:
+            return nil
+        case .madinaColored, .newMadani, .naskh, .shemerly, .qaloon, .warsh:
             return nil
         }
     }
@@ -84,6 +110,14 @@ public enum Reading: Int {
             return 1280
         case .indoPak:
             return 1342
+        case .madinaColored:
+            return 1000
+        case .newMadani, .qaloon, .warsh:
+            return 1260
+        case .naskh:
+            return 1280
+        case .shemerly:
+            return 1200
         }
     }
 
@@ -100,6 +134,10 @@ public enum Reading: Int {
         case .hafs_1440, .hafs_1439, .hafs_1441, .tajweed, .indoPak:
             return true
         case .hafs_1405, .hafs_1421:
+            return false
+        case .madinaColored, .newMadani, .qaloon, .warsh:
+            return true
+        case .naskh, .shemerly:
             return false
         }
     }
@@ -121,6 +159,8 @@ public enum Reading: Int {
             // Tajweed ayah info contains words dimensions, but they don't match the word-by-word database.
             return false
         case .indoPak:
+            return false
+        case .madinaColored, .newMadani, .naskh, .shemerly, .qaloon, .warsh:
             return false
         }
     }

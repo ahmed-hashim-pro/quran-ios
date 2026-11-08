@@ -39,6 +39,9 @@ extension Reading {
             return l("reading.tajweed.title")
         case .indoPak:
             return l("reading.indopak.title")
+        // quran_android's prints are chosen in the app's own list, never in this selector.
+        case .madinaColored, .newMadani, .naskh, .shemerly, .qaloon, .warsh:
+            return localPath
         }
     }
 
@@ -58,6 +61,8 @@ extension Reading {
             return l("reading.tajweed.description")
         case .indoPak:
             return l("reading.indopak.description")
+        case .madinaColored, .newMadani, .naskh, .shemerly, .qaloon, .warsh:
+            return ""
         }
     }
 
@@ -117,6 +122,8 @@ extension Reading {
                 Property(type: .supports, property: l("reading.selector.property.lines.15")),
                 Property(type: .lacks, property: l("reading.selector.property.word-translation.not-supported")),
             ]
+        case .madinaColored, .newMadani, .naskh, .shemerly, .qaloon, .warsh:
+            return []
         }
     }
 
@@ -136,6 +143,8 @@ extension Reading {
             return "tajweed"
         case .indoPak:
             return "indopak"
+        case .madinaColored, .newMadani, .naskh, .shemerly, .qaloon, .warsh:
+            return localPath
         }
     }
 

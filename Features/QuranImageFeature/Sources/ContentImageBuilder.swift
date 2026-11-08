@@ -148,6 +148,8 @@ private extension Reading {
             return .zero
         case .indoPak:
             return .zero
+        case .madinaColored, .newMadani, .naskh, .shemerly, .qaloon, .warsh:
+            return .zero
         }
     }
 }

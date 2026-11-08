@@ -30,6 +30,8 @@ final class ReadingRemoteResourcesFake: ReadingRemoteResources {
                 return "https://quran.com/tajweed.zip"
             case .indoPak:
                 return "https://quran.com/naskh.zip"
+            case .madinaColored, .newMadani, .naskh, .shemerly, .qaloon, .warsh:
+                return "https://quran.com/\(reading.localPath).zip"
             }
         }()
 
