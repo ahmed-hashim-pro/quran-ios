@@ -54,7 +54,10 @@ class ContentImageViewModel: ObservableObject {
     @Published private var overlays: VerseOverlays
 
     var imageRenderingMode: QuranThemedImage.RenderingMode {
-        reading.usesInvertedQuranImageRenderingInDarkMode ? .invertInDarkMode : .tinted
+        if reading.keepsColorsInDarkMode {
+            return .invertKeepingHues
+        }
+        return reading.usesInvertedQuranImageRenderingInDarkMode ? .invertInDarkMode : .tinted
     }
 
     var decorations: ImageDecorations {

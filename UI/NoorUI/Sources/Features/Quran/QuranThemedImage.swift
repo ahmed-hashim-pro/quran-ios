@@ -20,13 +20,14 @@ public struct QuranThemedImage: View {
     public enum RenderingMode: Equatable {
         case tinted
         case invertInDarkMode
+        case invertKeepingHues
     }
 
     public var body: some View {
         Image(uiImage: themedImage ?? image)
             .resizable()
             .aspectRatio(contentMode: .fit)
-            .invertThemedColorIfNeeded()
+            .invertThemedColorIfNeeded(keepingHues: renderingMode == .invertKeepingHues)
             .onChange(of: themeStyle) { newThemeStyle in
                 processImage(colorScheme: colorScheme, themeStyle: newThemeStyle)
             }
@@ -74,7 +75,7 @@ public struct QuranThemedImage: View {
         case .tinted:
             // return await tintedImage(colorScheme: colorScheme, themeStyle: themeStyle)
             fallthrough // Tinting is not perfect, currently, let's reconsider it later
-        case .invertInDarkMode:
+        case .invertInDarkMode, .invertKeepingHues:
             guard colorScheme == .dark || themeStyle == .quiet else {
                 return nil
             }

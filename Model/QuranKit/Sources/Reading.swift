@@ -142,6 +142,16 @@ public enum Reading: Int {
         }
     }
 
+    /// quran_android's colored prints: dark mode inverts their lightness but keeps their hues, so red stays red.
+    public var keepsColorsInDarkMode: Bool {
+        switch self {
+        case .tajweed, .madinaColored, .qaloon, .warsh:
+            true
+        case .hafs_1405, .hafs_1421, .hafs_1439, .hafs_1440, .hafs_1441, .indoPak, .newMadani, .naskh, .shemerly:
+            false
+        }
+    }
+
     public var supportsWordPositions: Bool {
         switch self {
         case .hafs_1405:

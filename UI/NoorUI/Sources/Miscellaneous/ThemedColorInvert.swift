@@ -8,6 +8,7 @@
 import SwiftUI
 
 private struct ThemedColorInvertModifier: ViewModifier {
+    let keepsHues: Bool
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.themeStyle) var themeStyle
     @Environment(\.nightBrightness) var nightBrightness
@@ -16,6 +17,8 @@ private struct ThemedColorInvertModifier: ViewModifier {
         if colorScheme == .dark || themeStyle == .quiet {
             content
                 .colorInvert()
+                // Inverting turns each hue to its opposite; turning it back keeps red red on a dark page.
+                .hueRotation(.degrees(keepsHues ? 180 : 0))
                 .colorMultiply(Color(white: nightBrightness.textLevel))
         } else {
             content
@@ -24,7 +27,7 @@ private struct ThemedColorInvertModifier: ViewModifier {
 }
 
 extension View {
-    public func invertThemedColorIfNeeded() -> some View {
-        modifier(ThemedColorInvertModifier())
+    public func invertThemedColorIfNeeded(keepingHues: Bool = false) -> some View {
+        modifier(ThemedColorInvertModifier(keepsHues: keepingHues))
     }
 }
