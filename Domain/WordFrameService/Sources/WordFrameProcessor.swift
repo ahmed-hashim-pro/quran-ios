@@ -20,8 +20,8 @@ public struct WordFrameProcessor {
             return WordFrameCollection(frames: [])
         }
 
-        // group by line
-        let framesByLines = Dictionary(grouping: frames, by: { $0.line })
+        // group by line, once the line numbers are the page's lines
+        let framesByLines = Dictionary(grouping: WordFrameLineRepair().repaired(frames), by: { $0.line })
         var lines = framesByLines
             .sorted { $0.key < $1.key }
             .map { _, wordFrames in wordFrames }

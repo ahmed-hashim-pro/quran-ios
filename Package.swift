@@ -518,8 +518,11 @@ private func domainTargets() -> [[Target]] {
             "AsyncUtilitiesForTesting",
         ]),
 
-        target(type, name: "WordFrameService", hasTests: false, dependencies: [
+        target(type, name: "WordFrameService", dependencies: [
             "WordFramePersistence",
+        ], testDependencies: [
+            "QuranKit",
+            "QuranGeometry",
         ]),
 
         target(type, name: "WordTextService", dependencies: [
