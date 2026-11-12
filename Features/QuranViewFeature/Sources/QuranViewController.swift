@@ -78,6 +78,10 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         .fade
     }
 
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        interactor.lockedOrientations ?? super.supportedInterfaceOrientations
+    }
+
     override func loadView() {
         view = QuranView()
     }
@@ -115,6 +119,8 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         UIApplication.shared.isIdleTimerDisabled = true
         navigationController?.setNavigationBarHidden(true, animated: animated)
         setOuterTabBarHiddenForIOS26(true, animated: animated)
+        // A push, unlike a full-screen presentation, doesn't make UIKit check the new orientations.
+        updateSupportedOrientations()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -122,6 +128,7 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         crashContext.clearActiveList(owner: "quran_translation")
         navigationController?.setNavigationBarHidden(false, animated: animated)
         setOuterTabBarHiddenForIOS26(false, animated: animated)
+        releaseOrientationLockOnLeaving()
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -371,6 +378,18 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         popup.show(in: view, bottomOffset: bottomInset + Self.markerPopupSpacing)
     }
 
+    func updateSupportedOrientations() {
+        if #available(iOS 16.0, *) {
+            setNeedsUpdateOfSupportedInterfaceOrientations()
+        } else {
+            if let orientations = interactor.lockedOrientations {
+                let orientation: UIInterfaceOrientation = orientations == .landscape ? .landscapeRight : .portrait
+                UIDevice.current.setValue(orientation.rawValue, forKey: "orientation")
+            }
+            UIViewController.attemptRotationToDeviceOrientation()
+        }
+    }
+
     func setVisiblePages(_ pages: [Page]) {
         title = pages.map { $0.startSura.localizedName(withPrefix: true) }.joined(separator: l("list.separator.comma"))
         updateTitle(pages)
@@ -457,6 +476,25 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         barsTimer = nil
     }
 
+    /// The screen the reader leaves for may not allow the orientation the lock kept.
+    private func releaseOrientationLockOnLeaving() {
+        guard interactor.lockedOrientations != nil, let navigationController else {
+            return
+        }
+        let update = { [weak navigationController] in
+            if #available(iOS 16.0, *) {
+                navigationController?.setNeedsUpdateOfSupportedInterfaceOrientations()
+            } else {
+                UIViewController.attemptRotationToDeviceOrientation()
+            }
+        }
+        if let transitionCoordinator {
+            transitionCoordinator.animate(alongsideTransition: nil) { _ in update() }
+        } else {
+            update()
+        }
+    }
+
     private func setOuterTabBarHiddenForIOS26(_ hidden: Bool, animated: Bool) {
         // On iPadOS 26, UIKit can leave the top tab bar visible despite hidesBottomBarWhenPushed.
         // Explicitly hiding the active tab bar works around that UIKit regression.
@@ -527,7 +565,7 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
             return
         }
         let suras = pages.map(\.startSura)
-        let pageDescription = pages.localizedDescription()
+        let pageDescription = pages.localizedDescription(printName: interactor.printName)
         let sura = suras.min()!
         let suraReference: MultipartText = "\(sura: sura)"
         if #available(iOS 26.0, *) {

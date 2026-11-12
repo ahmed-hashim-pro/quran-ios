@@ -52,6 +52,8 @@ final class MoreMenuViewModel: ObservableObject {
         verticalScrollingEnabled = preferences.verticalScrollingEnabled
         markerPopupsEnabled = preferences.displayMarkerPopup
         pageInfoEnabled = themeService.showsPageInfo
+        orientationLocked = preferences.lockOrientation
+        landscapeOrientation = preferences.landscapeOrientation
         showLinePageDividers = preferences.showLinePageDividers
         showLinePageSidelines = preferences.showLinePageSidelines
         showArabicText = preferences.showArabicInTranslation
@@ -137,6 +139,22 @@ final class MoreMenuViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
+        $orientationLocked
+            .dropFirst()
+            .sink { [weak self] newValue in
+                logger.info("More Menu: set orientation locked \(newValue)")
+                self?.preferences.lockOrientation = newValue
+            }
+            .store(in: &cancellables)
+
+        $landscapeOrientation
+            .dropFirst()
+            .sink { [weak self] newValue in
+                logger.info("More Menu: set landscape orientation \(newValue)")
+                self?.preferences.landscapeOrientation = newValue
+            }
+            .store(in: &cancellables)
+
         $markerPopupsEnabled
             .dropFirst()
             .sink { [weak self] newValue in
@@ -214,6 +232,8 @@ final class MoreMenuViewModel: ObservableObject {
     @Published var verticalScrollingEnabled: Bool
     @Published var markerPopupsEnabled: Bool
     @Published var pageInfoEnabled: Bool
+    @Published var orientationLocked: Bool
+    @Published var landscapeOrientation: Bool
     @Published var showLinePageDividers: Bool
     @Published var showLinePageSidelines: Bool
     @Published var showArabicText: Bool

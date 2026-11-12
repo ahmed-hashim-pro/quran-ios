@@ -42,6 +42,13 @@ public struct QuranContentStatePreferences {
     @Preference(splitPageAndTranslation)
     public var splitPageAndTranslation: Bool
 
+    /// quran_android's Lock orientation: the reader keeps portrait, or landscape while `landscapeOrientation` is on.
+    @Preference(lockOrientation)
+    public var lockOrientation: Bool
+
+    @Preference(landscapeOrientation)
+    public var landscapeOrientation: Bool
+
     #if QURAN_SYNC
     @TransformedPreference(ayahIndicatorVisibility, transformer: .rawRepresentable(defaultValue: .readingBookmark))
     public var ayahIndicatorVisibility: AyahIndicatorVisibility
@@ -58,6 +65,8 @@ public struct QuranContentStatePreferences {
     /// quran_android's key and default.
     private static let displayMarkerPopup = PreferenceKey<Bool>(key: "displayMarkerPopup", defaultValue: true)
     private static let splitPageAndTranslation = PreferenceKey<Bool>(key: "splitPageAndTranslation", defaultValue: false)
+    private static let lockOrientation = PreferenceKey<Bool>(key: "lockOrientation", defaultValue: false)
+    private static let landscapeOrientation = PreferenceKey<Bool>(key: "landscapeOrientation", defaultValue: false)
     #if QURAN_SYNC
     private static let ayahIndicatorVisibility = PreferenceKey<String>(key: "ayahIndicators", defaultValue: AyahIndicatorVisibility.readingBookmark.rawValue)
     #endif

@@ -156,6 +156,14 @@ final class LocalizationCatalogTests: XCTestCase {
         "quran.sura-name-translation.indopak.41",
         "quran.sura-name-translation.indopak.76",
         "quran.sura-name-translation.indopak.111",
+        "reading.madina-colored.short-name",
+        "reading.hafs-1405.short-name",
+        "reading.new-madani.short-name",
+        "reading.tajweed.short-name",
+        "reading.naskh.short-name",
+        "reading.shemerly.short-name",
+        "reading.qaloon.short-name",
+        "reading.warsh.short-name",
     ]
 
     private let englishOnlyFallbackKeys: Set<String> = [

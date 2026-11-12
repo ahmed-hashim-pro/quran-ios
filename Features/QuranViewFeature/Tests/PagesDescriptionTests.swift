@@ -5,6 +5,7 @@
 //  Created by Mohamed Afifi on 2026-10-14.
 //
 
+import Localization
 import QuranKit
 import XCTest
 @testable import QuranViewFeature
@@ -33,12 +34,41 @@ final class PagesDescriptionTests: XCTestCase {
         XCTAssertEqual(pages.localizedDescription(language: .english), "Pages 21–22, Juz' 1")
     }
 
+    func testThePrintNameFollowsThePages() {
+        let page = [quran.pages[1]]
+
+        XCTAssertEqual(
+            page.localizedDescription(printName: Reading.warsh.printName(language: .english), language: .english),
+            "Page 2, Juz' 1 · Warsh"
+        )
+        XCTAssertEqual(
+            withoutBidiIsolates(page.localizedDescription(printName: Reading.warsh.printName(language: .arabic), language: .arabic)),
+            "صفحة 2، جزء 1 · ورش"
+        )
+    }
+
+    func testEveryAndroidPrintHasANameInEnglishAndArabic() {
+        for reading in Reading.androidReadings {
+            for language in [Language.english, .arabic] {
+                let name = reading.printName(language: language)
+                XCTAssertNotNil(name, "\(reading) in \(language)")
+                XCTAssertFalse(name?.hasPrefix("reading.") ?? true, "\(reading) in \(language) has no string")
+            }
+        }
+        XCTAssertEqual(Set(Reading.androidReadings.compactMap { $0.printName(language: .english) }).count, Reading.androidReadings.count)
+    }
+
+    func testPrintsAndroidLacksHaveNoName() {
+        XCTAssertNil(Reading.hafs_1440.printName())
+        XCTAssertNil(Reading.indoPak.printName())
+    }
+
     // MARK: Private
 
     private let quran = Quran.hafsMadani1405
 
-    /// Foundation wraps `%@` arguments of a right-to-left format in U+2068/U+2069 bidi isolates.
+    /// Foundation wraps `%@` arguments of a right-to-left format in bidi isolates, U+2066 to U+2069.
     private func withoutBidiIsolates(_ text: String) -> String {
-        text.replacingOccurrences(of: "\u{2068}", with: "").replacingOccurrences(of: "\u{2069}", with: "")
+        text.filter { !("\u{2066}" ... "\u{2069}").contains($0) }
     }
 }

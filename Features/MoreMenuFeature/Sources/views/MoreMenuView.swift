@@ -140,6 +140,18 @@ private struct MoreMenuRootView: View {
 
                     viewBasedOn(state.orientation, customCondition: store.mode == .arabic) {
                         MoreMenuDeviceRotation()
+                            .disabled(store.orientationLocked && isVisible(state.orientationLock, customCondition: true))
+                            .background(Color.systemBackground)
+                        if isVisible(state.orientationLock, customCondition: true) {
+                            divider
+                                .background(Color.systemBackground)
+                        } else {
+                            empty
+                        }
+                    }
+
+                    viewBasedOn(state.orientationLock) {
+                        MoreMenuOrientationLock(locked: $store.orientationLocked, landscape: $store.landscapeOrientation)
                             .background(Color.systemBackground)
                         empty
                     }
