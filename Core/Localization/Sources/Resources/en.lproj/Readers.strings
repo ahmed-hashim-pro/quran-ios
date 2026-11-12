@@ -13,6 +13,7 @@
 "qari_afasy_gapless" = "Mishary Al-Afasy";
 "qari_ahmad_nauina_gapless" = "Ahmad Nauina";
 "qari_ahmed_al_nufais_gapless" = "Ahmed Al-Nufais";
+"qari_ajamy" = "Ahmed ibn Ali al-Ajamy";
 "qari_ajamy_gapless" = "Ahmed ibn Ali al-Ajamy";
 "qari_akram_al_alaqmi" = "Akram Al-Alaqmi";
 "qari_ali_hajjaj_alsouasi_gapless" = "Ali Hajjaj Alsouasi";
@@ -20,6 +21,7 @@
 "qari_alijon_qari_gapless" = "Alijon Qari";
 "qari_aloosi_gapless" = "Abdulrahman Aloosi";
 "qari_alzain_ahmad_gapless" = "Alzain Mohammad Ahmad";
+"qari_ayman_suwaid" = "Dr. Ayman Suwaid";
 "qari_ayman_suwaid_gapless" = "Dr. Ayman Suwaid";
 "qari_ayman_suwaid_gapped" = "Dr. Ayman Suwaid (gapped)";
 "qari_ayyoub" = "Muhammad Ayyoub (gapped)";
@@ -86,4 +88,5 @@
 "qari_walk" = "Ibrahim Walk (English)";
 "qari_walk_gapless" = "Ibrahim Walk (English)";
 "qari_yasser_dussary_gapless" = "Yasser Ad-Dussary";
+"qari_yasser_salama" = "Yasser Salama";
 "qari_yasser_salama_hadr_gapless" = "Yasser Salama (hadr)";

@@ -13,6 +13,7 @@
 "qari_afasy_gapless" = "مشاري بن راشد العفاسي";
 "qari_ahmad_nauina_gapless" = "أحمد نعينع";
 "qari_ahmed_al_nufais_gapless" = "أحمد النفيس";
+"qari_ajamy" = "أحمد بن علي العجمي";
 "qari_ajamy_gapless" = "أحمد بن علي العجمي";
 "qari_akram_al_alaqmi" = "اكرم العلقمي  (غير متصل)";
 "qari_ali_hajjaj_alsouasi_gapless" = "علي حجاج السويسي";
@@ -20,6 +21,7 @@
 "qari_alijon_qari_gapless" = "علي بن فيض الله مخدوم";
 "qari_aloosi_gapless" = "عبدالرحمن العوسي";
 "qari_alzain_ahmad_gapless" = "الزين محمد أحمد";
+"qari_ayman_suwaid" = "أيمن سويد";
 "qari_ayman_suwaid_gapless" = "أيمن سويد";
 "qari_ayman_suwaid_gapped" = "أيمن سويد (غير متصل)";
 "qari_ayyoub" = "محمد أيوب (غير متصل)";
@@ -86,4 +88,5 @@
 "qari_walk" = "إبراهيم والك (ترجمة انجليزية)";
 "qari_walk_gapless" = "إبراهيم والك (ترجمة انجليزية)";
 "qari_yasser_dussary_gapless" = "ياسر الدوسري";
+"qari_yasser_salama" = "ياسر سلامة";
 "qari_yasser_salama_hadr_gapless" = "ياسر سلامة (حدر)";
