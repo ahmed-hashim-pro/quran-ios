@@ -211,6 +211,63 @@ final class QuranViewTests: XCTestCase {
         XCTAssertEqual(context.sut.bottomBarsHeight, 0)
     }
 
+    // MARK: - Translation Strip
+
+    func test_translationStripShowsOnlyInTranslationMode() {
+        let sut = QuranView()
+        let strip = UIView()
+        sut.addTranslationStripView(strip)
+        XCTAssertTrue(strip.isHidden)
+
+        sut.setTranslationStripShown(true)
+        XCTAssertFalse(strip.isHidden)
+
+        sut.setTranslationStripShown(false)
+        XCTAssertTrue(strip.isHidden)
+    }
+
+    func test_translationStripHidesAndShowsWithTheBars() {
+        let sut = QuranView()
+        let strip = UIView()
+        sut.addTranslationStripView(strip)
+        sut.setTranslationStripShown(true)
+
+        sut.setBarsHidden(true)
+        XCTAssertTrue(strip.isHidden)
+        XCTAssertFalse(strip.isUserInteractionEnabled)
+
+        sut.setBarsHidden(false)
+        XCTAssertFalse(strip.isHidden)
+        XCTAssertTrue(strip.isUserInteractionEnabled)
+    }
+
+    func test_translationStripTurnedOnWhileBarsAreHiddenStaysHidden() {
+        let sut = QuranView()
+        let strip = UIView()
+        sut.addTranslationStripView(strip)
+        sut.setBarsHidden(true)
+
+        sut.setTranslationStripShown(true)
+
+        XCTAssertTrue(strip.isHidden)
+    }
+
+    // MARK: - Swipe Down From Top
+
+    func test_swipeDownFromTheTopEdge_revealsTheBars() {
+        let sut = QuranView()
+
+        XCTAssertTrue(sut.isSwipeDownFromTop(start: CGPoint(x: 100, y: 10), velocity: CGPoint(x: 20, y: 300)))
+    }
+
+    func test_swipesAwayFromTheTopEdgeOrSideways_doNotRevealTheBars() {
+        let sut = QuranView()
+
+        XCTAssertFalse(sut.isSwipeDownFromTop(start: CGPoint(x: 100, y: 300), velocity: CGPoint(x: 0, y: 300)))
+        XCTAssertFalse(sut.isSwipeDownFromTop(start: CGPoint(x: 100, y: 10), velocity: CGPoint(x: 400, y: 100)))
+        XCTAssertFalse(sut.isSwipeDownFromTop(start: CGPoint(x: 100, y: 10), velocity: CGPoint(x: 0, y: -300)))
+    }
+
     private struct TestContext {
         let retainedHostViewController: UIViewController
         let sut: QuranView

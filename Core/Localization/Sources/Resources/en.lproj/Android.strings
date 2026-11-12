@@ -87,6 +87,9 @@ Please note that we receive lots of emails, so we may not be able to reply to al
 "export_data_error" = "Error exporting data";
 "exported_data" = "Data exported to %1$@";
 "extracting_title" = "Processing…";
+"focus_mode" = "Focus mode";
+"focus_mode_off" = "Focus mode off";
+"focus_mode_on" = "Focus mode on";
 "found_in_sura" = "Found in Surah (%1$d) %2$@: %3$d (page %4$d)";
 "from" = "From";
 "get_arabic_search_db" = "Get Arabic Search Database";

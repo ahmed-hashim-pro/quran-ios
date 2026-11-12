@@ -8,14 +8,16 @@
 public struct MoreMenuModel {
     // MARK: Lifecycle
 
-    public init(isWordPointerActive: Bool, state: MoreMenuControlsState) {
+    public init(isWordPointerActive: Bool, isFocusModeActive: Bool = false, state: MoreMenuControlsState) {
         self.isWordPointerActive = isWordPointerActive
+        self.isFocusModeActive = isFocusModeActive
         self.state = state
     }
 
     // MARK: Public
 
     public var isWordPointerActive: Bool
+    public var isFocusModeActive: Bool
     public var state: MoreMenuControlsState
 }
 
@@ -54,4 +56,8 @@ public struct MoreMenuControlsState {
     public var markerPopups = ConfigState.conditional
     public var audioManager = ConfigState.alwaysOff
     public var theme = ConfigState.conditional
+    /// quran_android's Focus mode, which hides the reader's bars until it is turned off.
+    public var focusMode = ConfigState.alwaysOff
+    /// quran_android's Advanced Options, which the host app provides.
+    public var advancedOptions = ConfigState.alwaysOff
 }

@@ -158,6 +158,9 @@ final class LocalizationCatalogTests: XCTestCase {
     /// Android strings iOS uses that Android lacks in some languages, which show English instead.
     private let englishAndArabicAndroidKeys: Set<String> = [
         "download_non_wifi_prompt",
+        "focus_mode",
+        "focus_mode_off",
+        "focus_mode_on",
         "playback_prompt_last_range",
         "playback_prompt_page_sub",
         "playback_prompt_reciter",

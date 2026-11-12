@@ -44,6 +44,7 @@ final class ThemeSettingsController<V: View>: UIHostingController<V> {
 struct MoreMenuThemeSettingsMenuItem: View {
     let showFontSize: Bool
     let showArabicFontSize: Bool
+    var openAdvancedOptions: (() -> Void)?
 
     @Environment(\.navigator) private var navigator
     @State private var viewController: UIViewController?
@@ -73,7 +74,11 @@ struct MoreMenuThemeSettingsMenuItem: View {
     }
 
     private func themeSettingsView() -> some View {
-        MoreMenuThemeSettingsView(showFontSize: showFontSize, showArabicFontSize: showArabicFontSize)
+        MoreMenuThemeSettingsView(
+            showFontSize: showFontSize,
+            showArabicFontSize: showArabicFontSize,
+            openAdvancedOptions: openAdvancedOptions
+        )
     }
 }
 
@@ -114,6 +119,23 @@ private struct FontSizeView: View {
     }
 }
 
+/// quran_android's Advanced Options: importing and exporting bookmarks, which the host app does.
+private struct AdvancedOptionsRow: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            NoorListItem(
+                title: .text(lAndroid("prefs_category_advanced")),
+                subtitle: .init(text: .text(lAndroid("prefs_category_advanced_summary")), location: .bottom),
+                accessory: .disclosureIndicator
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 private struct NightBrightnessSettings: View {
     @Binding var text: Int
     @Binding var background: Int
@@ -141,12 +163,13 @@ private struct NightBrightnessSettings: View {
     }
 }
 
-private struct MoreMenuThemeSettingsView: View {
+struct MoreMenuThemeSettingsView: View {
     @StateObject var viewModel = MoreMenuThemeSettingsViewModel()
     @Environment(\.colorScheme) private var colorScheme
 
     let showFontSize: Bool
     let showArabicFontSize: Bool
+    var openAdvancedOptions: (() -> Void)?
 
     @State private var arabicLabelSize: CGSize = .zero
     @State private var translationLabelSize: CGSize = .zero
@@ -211,6 +234,13 @@ private struct MoreMenuThemeSettingsView: View {
                     NightBrightnessSettings(text: $viewModel.nightTextBrightness, background: $viewModel.nightBackgroundBrightness)
                         // Like quran_android, the levels only apply, and only change, in night mode.
                         .disabled(!(colorScheme == .dark || viewModel.themeStyle == .quiet))
+
+                    if let openAdvancedOptions {
+                        Divider()
+                            .padding(.vertical, compactVerticalPadding)
+
+                        AdvancedOptionsRow(action: openAdvancedOptions)
+                    }
                 }
                 .padding()
             }

@@ -67,6 +67,12 @@ private struct MoreMenuRootView: View {
                         empty
                     }
 
+                    viewBasedOn(state.focusMode) {
+                        MoreMenuFocusMode(enabled: $store.focusModeEnabled)
+                            .background(Color.systemBackground)
+                        empty
+                    }
+
                     viewBasedOn(state.mushafPrint) {
                         Button {
                             store.chooseMushafPrint()
@@ -198,7 +204,10 @@ private struct MoreMenuRootView: View {
                     viewBasedOn(state.theme) {
                         MoreMenuThemeSettingsMenuItem(
                             showFontSize: isVisible(state.fontSize, customCondition: store.mode == .translation),
-                            showArabicFontSize: store.showArabicText
+                            showArabicFontSize: store.showArabicText,
+                            openAdvancedOptions: isVisible(state.advancedOptions, customCondition: true)
+                                ? { store.openAdvancedOptions() }
+                                : nil
                         )
                     }
                 }

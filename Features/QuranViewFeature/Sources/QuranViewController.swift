@@ -28,6 +28,7 @@ import QuranAnnotations
 import QuranContentFeature
 import QuranKit
 import QuranLocalization
+import QuranText
 import QuranTextKit
 import SwiftUI
 import Timing
@@ -82,6 +83,11 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         interactor.lockedOrientations ?? super.supportedInterfaceOrientations
     }
 
+    /// In focus mode the first swipe from the top edge brings the bars back rather than the system's.
+    override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge {
+        interactor.isFocusModeOn ? .top : []
+    }
+
     override func loadView() {
         view = QuranView()
     }
@@ -110,7 +116,19 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
             action: #selector(backTapped)
         )
 
+        setQuranMode(interactor.quranMode)
         setupContentStatus()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let barActionCount = ReaderBarActions.count(for: view.bounds.size)
+        if barActionCount != self.barActionCount {
+            self.barActionCount = barActionCount
+            if let barBookmarkButton {
+                setRightBarItems(bookmark: barBookmarkButton, animated: false)
+            }
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -165,9 +183,36 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
     // MARK: - Quran View Delegate
 
     func onQuranViewTapped(_ quranView: QuranView) {
-        if interactor.contentStatus == nil && quranView.contentView != nil {
+        // As on quran_android, page taps leave the bars alone in focus mode.
+        if interactor.contentStatus == nil && quranView.contentView != nil && !interactor.isFocusModeOn {
             setBarsHidden(!statusBarHidden)
         }
+    }
+
+    func onQuranViewSwipedDownFromTop(_ quranView: QuranView) {
+        setBarsHidden(false)
+    }
+
+    // MARK: - Reader Modes
+
+    func setQuranMode(_ mode: QuranMode) {
+        let showsTranslation = mode == .translation
+        quranModeNavigationButton.image = UIImage(systemName: showsTranslation ? NoorSystemImage.book.rawValue : NoorSystemImage.translation.rawValue)
+        quranModeNavigationButton.accessibilityLabel = lAndroid(showsTranslation ? "menu_back_to_page" : "menu_translation")
+        quranView?.setTranslationStripShown(showsTranslation)
+    }
+
+    func setFocusMode(_ isOn: Bool) {
+        quranView?.revealsBarsOnSwipeDownFromTop = isOn
+        setBarsHidden(isOn)
+        setNeedsUpdateOfScreenEdgesDeferringSystemGestures()
+        showMarkerPopup(lAndroid(isOn ? "focus_mode_on" : "focus_mode_off"))
+    }
+
+    func presentTranslationStrip(_ viewController: UIViewController) {
+        addChild(viewController)
+        quranView?.addTranslationStripView(viewController.view)
+        viewController.didMove(toParent: self)
     }
 
     // MARK: - View Controllable
@@ -404,10 +449,7 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         )
         readingBookmarkMenuNavigationButton.tintColor = bookmark?.slot.color
         readingBookmarkMenuNavigationButton.accessibilityValue = bookmark?.displayName
-        quranView?.navigationItem.setRightBarButtonItems(
-            [moreNavigationButton, readingBookmarkMenuNavigationButton],
-            animated: false
-        )
+        setRightBarItems(bookmark: readingBookmarkMenuNavigationButton, animated: false)
     }
     #else
     func updateBookmark(_ isBookmarked: Bool) {
@@ -432,8 +474,32 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
 
     private var barsTimer: Timing.Timer?
     private weak var markerPopupView: QuranMarkerPopupView?
+    private var barBookmarkButton: UIBarButtonItem?
+    private var barActionCount = 0
 
     // MARK: - Navigation Bar
+
+    private lazy var settingsNavigationButton = NavigationBarButton.secondary(
+        systemName: NoorSystemImage.settings.rawValue,
+        accessibilityLabel: lAndroid("menu_settings")
+    ) { [weak self] in
+        self?.interactor.onThemeSettingsTapped()
+    }
+
+    private lazy var searchNavigationButton = NavigationBarButton.secondary(
+        systemName: NoorSystemImage.search.rawValue,
+        accessibilityLabel: lAndroid("menu_search")
+    ) { [weak self] in
+        self?.interactor.onSearchTapped()
+    }
+
+    /// quran_android's Show Translation, which reads Show Quran in translation mode.
+    private lazy var quranModeNavigationButton = NavigationBarButton.secondary(
+        systemName: NoorSystemImage.translation.rawValue,
+        accessibilityLabel: lAndroid("menu_translation")
+    ) { [weak self] in
+        self?.interactor.toggleQuranMode()
+    }
 
     private lazy var moreNavigationButton: UIBarButtonItem = {
         let button = UIBarButtonItem(
@@ -581,6 +647,19 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         }
     }
 
+    /// quran_android's actions in its order, as many as fit, then its overflow. Those left off stay in More.
+    private func setRightBarItems(bookmark: UIBarButtonItem, animated: Bool) {
+        barBookmarkButton = bookmark
+        var actions = [bookmark, quranModeNavigationButton]
+        if interactor.canSearch {
+            actions.append(searchNavigationButton)
+        }
+        actions.append(settingsNavigationButton)
+        barActionCount = ReaderBarActions.count(for: view.bounds.size)
+        let shownActions = actions.prefix(barActionCount)
+        quranView?.navigationItem.setRightBarButtonItems([moreNavigationButton] + shownActions.reversed(), animated: animated)
+    }
+
     #if !QURAN_SYNC
     private func updateRightBarItems(animated: Bool, isBookmarked: Bool) {
         let bookmarkImage = UIImage.symbol(isBookmarked ? "bookmark.fill" : "bookmark")
@@ -589,9 +668,8 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         if isBookmarked {
             bookmark.tintColor = .systemRed
         }
-        let items = [moreNavigationButton, bookmark]
 
-        quranView?.navigationItem.setRightBarButtonItems(items, animated: animated)
+        setRightBarItems(bookmark: bookmark, animated: animated)
     }
     #endif
 

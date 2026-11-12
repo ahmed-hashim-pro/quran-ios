@@ -21,6 +21,8 @@ public protocol MoreMenuListener: AnyObject {
     func onAudioManagerTapped()
     func onSearchTapped()
     func onMushafPrintTapped()
+    func onFocusModeUpdated(to isFocusModeActive: Bool)
+    func onAdvancedOptionsTapped()
 }
 
 extension MoreMenuListener {
@@ -32,6 +34,10 @@ extension MoreMenuListener {
     public func onSearchTapped() {}
     /// Only menus that turn on `MoreMenuControlsState.mushafPrint` show the row.
     public func onMushafPrintTapped() {}
+    /// Only menus that turn on `MoreMenuControlsState.focusMode` show the row.
+    public func onFocusModeUpdated(to isFocusModeActive: Bool) {}
+    /// Only menus that turn on `MoreMenuControlsState.advancedOptions` show the row.
+    public func onAdvancedOptionsTapped() {}
 }
 
 @MainActor
@@ -44,6 +50,7 @@ final class MoreMenuViewModel: ObservableObject {
 
         mode = preferences.quranMode
         wordPointerEnabled = model.isWordPointerActive
+        focusModeEnabled = model.isFocusModeActive
         wordPointerType = wordTextPreferences.wordTextType
         translationFontSize = fontSizePreferences.translationFontSize
         arabicFontSize = fontSizePreferences.arabicFontSize
@@ -80,6 +87,14 @@ final class MoreMenuViewModel: ObservableObject {
             .sink { [weak self] newValue in
                 logger.info("More Menu: set is word pointer active \(newValue)")
                 self?.listener?.onIsWordPointerActiveUpdated(to: newValue)
+            }
+            .store(in: &cancellables)
+
+        $focusModeEnabled
+            .dropFirst()
+            .sink { [weak self] newValue in
+                logger.info("More Menu: set focus mode \(newValue)")
+                self?.listener?.onFocusModeUpdated(to: newValue)
             }
             .store(in: &cancellables)
 
@@ -223,6 +238,7 @@ final class MoreMenuViewModel: ObservableObject {
     var state: MoreMenuControlsState
 
     @Published var wordPointerEnabled: Bool
+    @Published var focusModeEnabled: Bool
     @Published var wordPointerType: WordTextType
     @Published var translationFontSize: FontSize
     @Published var arabicFontSize: FontSize
@@ -266,6 +282,11 @@ final class MoreMenuViewModel: ObservableObject {
     func selectTranslations() {
         logger.info("More Menu: translations selections tapped")
         listener?.onTranslationsSelectionsTapped()
+    }
+
+    func openAdvancedOptions() {
+        logger.info("More Menu: advanced options tapped")
+        listener?.onAdvancedOptionsTapped()
     }
 
     // MARK: Private

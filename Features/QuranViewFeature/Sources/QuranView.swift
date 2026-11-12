@@ -25,6 +25,7 @@ import ViewConstrainer
 @MainActor
 protocol QuranViewDelegate: AnyObject {
     func onQuranViewTapped(_ quranView: QuranView)
+    func onQuranViewSwipedDownFromTop(_ quranView: QuranView)
 }
 
 class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
@@ -48,6 +49,9 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
 
     let navigationBar = UINavigationBar()
     let navigationItem = UINavigationItem()
+
+    /// quran_android's focus mode brings the hidden bars back with a swipe from the top edge.
+    var revealsBarsOnSwipeDownFromTop = false
 
     /// How far the audio bar reaches above the window's bottom edge, or 0 while it's hidden.
     var bottomBarsHeight: CGFloat {
@@ -114,7 +118,13 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
             animated: animated,
             stateChanged: audioBarStateChanged
         )
-        guard animateNavigationBar || animateAudioBar else {
+        let animateTranslationStrip = prepareBarForVisibilityTransition(
+            translationStripView,
+            hidden: translationStripHidden,
+            animated: animated,
+            stateChanged: translationStripShown && navigationBarStateChanged
+        )
+        guard animateNavigationBar || animateAudioBar || animateTranslationStrip else {
             completion?()
             return
         }
@@ -126,6 +136,9 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
             if animateAudioBar {
                 self.audioView?.alpha = hidden ? 0 : 1
             }
+            if animateTranslationStrip {
+                self.translationStripView?.alpha = hidden ? 0 : 1
+            }
         } completion: { [weak self] in
             guard let self, barsVisibilityAnimationID == animationID else { return }
             if animateNavigationBar, navigationBarHidden == hidden {
@@ -134,8 +147,28 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
             if animateAudioBar, audioBarHidden == hidden {
                 updateAudioBarVisibility()
             }
+            if animateTranslationStrip {
+                updateTranslationStripVisibility()
+            }
             completion?()
         }
+    }
+
+    // MARK: - Translation Strip
+
+    func addTranslationStripView(_ stripView: UIView) {
+        translationStripView = stripView
+        addAutoLayoutSubview(stripView)
+        stripView.vc.horizontalEdges()
+        stripView.topAnchor.constraint(equalTo: navigationBar.bottomAnchor).isActive = true
+        updateTranslationStripVisibility()
+    }
+
+    /// quran_android shows the strip in translation mode, while the bars show.
+    func setTranslationStripShown(_ shown: Bool) {
+        translationStripShown = shown
+        translationStripView?.layer.removeAllAnimations()
+        updateTranslationStripVisibility()
     }
 
     func setAudioBarHidden(_ hidden: Bool) {
@@ -152,20 +185,45 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
 
     @objc
     func onViewTapped(_ sender: UITapGestureRecognizer) {
-        if let audioView, audioView.bounds.contains(sender.location(in: audioView)), audioView.isUserInteractionEnabled {
-            return
+        for bar in [audioView, translationStripView].compactMap({ $0 }) where bar.isUserInteractionEnabled {
+            if bar.bounds.contains(sender.location(in: bar)) {
+                return
+            }
         }
         delegate?.onQuranViewTapped(self)
     }
 
     override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        gestureRecognizer != tapGesture || !isFirstResponder // dismiss bars only if not first responder
+        if gestureRecognizer === swipeDownFromTopGesture {
+            let location = swipeDownFromTopGesture.location(in: self)
+            let translation = swipeDownFromTopGesture.translation(in: self)
+            let start = CGPoint(x: location.x - translation.x, y: location.y - translation.y)
+            return revealsBarsOnSwipeDownFromTop
+                && isSwipeDownFromTop(start: start, velocity: swipeDownFromTopGesture.velocity(in: self))
+        }
+        return gestureRecognizer != tapGesture || !isFirstResponder // dismiss bars only if not first responder
+    }
+
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        // Leaves page turns and scrolling to the content.
+        gestureRecognizer === swipeDownFromTopGesture
+    }
+
+    func isSwipeDownFromTop(start: CGPoint, velocity: CGPoint) -> Bool {
+        start.y <= safeAreaInsets.top + topEdgeSwipeHeight && velocity.y > abs(velocity.x)
     }
 
     // MARK: Private
 
     private let tapGesture = UITapGestureRecognizer()
+    private let swipeDownFromTopGesture = UIPanGestureRecognizer()
+    private let topEdgeSwipeHeight: CGFloat = 32
     private var audioView: UIView?
+    private var translationStripView: UIView?
+    private var translationStripShown = false
     private var navigationBarHidden = false
     private var audioBarHidden = false
     // Prevent an interrupted animation from finalizing a newer visibility request.
@@ -243,6 +301,21 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
         updateBarVisibility(audioView, hidden: audioBarHidden)
     }
 
+    private var translationStripHidden: Bool {
+        !translationStripShown || navigationBarHidden
+    }
+
+    private func updateTranslationStripVisibility() {
+        updateBarVisibility(translationStripView, hidden: translationStripHidden)
+    }
+
+    @objc
+    private func onSwipeDownFromTop(_ sender: UIPanGestureRecognizer) {
+        if sender.state == .began {
+            delegate?.onQuranViewSwipedDownFromTop(self)
+        }
+    }
+
     private func prepareBarForVisibilityTransition(
         _ view: UIView?,
         hidden: Bool,
@@ -275,6 +348,11 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
         tapGesture.addTarget(self, action: #selector(onViewTapped(_:)))
         tapGesture.delegate = self
         addGestureRecognizer(tapGesture)
+
+        swipeDownFromTopGesture.addTarget(self, action: #selector(onSwipeDownFromTop(_:)))
+        swipeDownFromTopGesture.delegate = self
+        swipeDownFromTopGesture.cancelsTouchesInView = false
+        addGestureRecognizer(swipeDownFromTopGesture)
 
         // navigation bar
         addAutoLayoutSubview(navigationBar)

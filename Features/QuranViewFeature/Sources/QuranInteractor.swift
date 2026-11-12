@@ -54,6 +54,8 @@ protocol QuranPresentable: UIViewController {
     var bottomBarsHeight: CGFloat { get }
 
     func setVisiblePages(_ pages: [Page])
+    func setQuranMode(_ mode: QuranMode)
+    func setFocusMode(_ isOn: Bool)
     func showMarkerPopup(_ text: String)
     func updateSupportedOrientations()
     #if QURAN_SYNC
@@ -76,6 +78,7 @@ protocol QuranPresentable: UIViewController {
     func presentAudioBanner(_ audioBanner: UIViewController)
     func presentWordPointer(_ viewController: UIViewController)
     func presentQuranContent(_ viewController: ContentViewController)
+    func presentTranslationStrip(_ viewController: UIViewController)
     func presentTranslationsSelection(_ viewController: UIViewController)
     func presentGoTo(_ viewController: UIViewController)
     func presentAudioManager(_ viewController: UIViewController)
@@ -115,8 +118,10 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         #endif
         var tagAyah: QuranAyahTagger?
         var choosePrint: QuranPrintChooser?
+        var openAdvancedOptions: QuranAdvancedOptionsOpener?
         var audioDownloadsBuilder: AudioDownloadsBuilder?
         var searchBuilder: SearchBuilder?
+        var localTranslationsRetriever: LocalTranslationsRetriever?
     }
 
     // MARK: Lifecycle
@@ -152,6 +157,13 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
     var printName: String? {
         quranMode == .arabic ? readingPreferences.reading.printName() : nil
     }
+
+    var canSearch: Bool {
+        deps.searchBuilder != nil
+    }
+
+    /// quran_android keeps focus mode for the reader's session only, under no preference.
+    private(set) var isFocusModeOn = false
 
     // MARK: - Audio Banner
 
@@ -225,13 +237,18 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         state.search = deps.searchBuilder == nil ? .alwaysOff : .alwaysOn
         state.mushafPrint = deps.choosePrint == nil ? .alwaysOff : .alwaysOn
         state.orientationLock = ReaderOrientationLock.isAvailable(on: UIDevice.current.userInterfaceIdiom) ? .alwaysOn : .alwaysOff
-        let model = MoreMenuModel(isWordPointerActive: isWordPointerActive, state: state)
+        // quran_android's settings list Translations whichever mode the reader is in.
+        state.translationsSelection = .alwaysOn
+        state.focusMode = .alwaysOn
+        state.advancedOptions = deps.openAdvancedOptions == nil ? .alwaysOff : .alwaysOn
+        let model = MoreMenuModel(isWordPointerActive: isWordPointerActive, isFocusModeActive: isFocusModeOn, state: state)
         let viewController = deps.moreMenuBuilder.build(withListener: self, model: model)
         presenter?.presentMoreMenu(viewController)
     }
 
     func onQuranModeUpdated() {
         presenter?.setVisiblePages(visiblePages)
+        presenter?.setQuranMode(quranMode)
         let noTranslationsSelected = selectedTranslationsPreferences.selectedTranslationIds.isEmpty
         if quranMode == .translation, noTranslationsSelected {
             presentTranslationsSelection()
@@ -240,6 +257,49 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
 
     func onTranslationsSelectionsTapped() {
         presentTranslationsSelection()
+    }
+
+    // MARK: - Reader Bar
+
+    /// quran_android's Show Translation and Show Quran.
+    func toggleQuranMode() {
+        logger.info("Quran: toggle quran mode from \(quranMode)")
+        contentStatePreferences.quranMode = quranMode == .arabic ? .translation : .arabic
+    }
+
+    func onThemeSettingsTapped() {
+        logger.info("Quran: theme settings tapped")
+        let openAdvancedOptions: (() -> Void)? = deps.openAdvancedOptions == nil ? nil : { [weak self] in
+            self?.onAdvancedOptionsTapped()
+        }
+        let controller = deps.moreMenuBuilder.buildThemeSettings(
+            showFontSize: quranMode == .translation,
+            showArabicFontSize: contentStatePreferences.showArabicInTranslation,
+            openAdvancedOptions: openAdvancedOptions
+        )
+        presenter?.dismissPresentedViewController { [weak self] in
+            self?.presenter?.present(controller, animated: true)
+        }
+    }
+
+    func onAdvancedOptionsTapped() {
+        guard let openAdvancedOptions = deps.openAdvancedOptions else {
+            return
+        }
+        logger.info("Quran: advanced options tapped")
+        presenter?.dismissPresentedViewController { [weak self] in
+            if let presenter = self?.presenter {
+                openAdvancedOptions(presenter)
+            }
+        }
+    }
+
+    func onFocusModeUpdated(to isFocusModeActive: Bool) {
+        logger.info("Quran: focus mode \(isFocusModeActive)")
+        isFocusModeOn = isFocusModeActive
+        presenter?.dismissPresentedViewController { [weak self] in
+            self?.presenter?.setFocusMode(isFocusModeActive)
+        }
     }
 
     /// quran_android's reader menu searches too; a result turns this reader to it.
@@ -597,6 +657,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
     private var deps: Deps
     private let input: QuranInput
     private var audioBanner: AudioBannerViewModel?
+    private var hasTranslationStrip = false
     /// The content loads again when its resources do, which must not play again.
     private var didPlayOnOpen = false
     private var cancellables: Set<AnyCancellable> = []
@@ -652,8 +713,20 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         }
 
         (contentViewController, contentViewModel) = presentQuranContent(with: input)
+        presentTranslationStripIfNeeded()
         presenter?.startHiddenBarsTimer()
         restoreWordPointerIfNeeded()
+    }
+
+    private func presentTranslationStripIfNeeded() {
+        guard !hasTranslationStrip else {
+            return
+        }
+        hasTranslationStrip = true
+        let strip = TranslationStripBuilder.build(localTranslationsRetriever: deps.localTranslationsRetriever) { [weak self] in
+            self?.presentTranslationsSelection()
+        }
+        presenter?.presentTranslationStrip(strip)
     }
 
     private func restoreWordPointerIfNeeded() {

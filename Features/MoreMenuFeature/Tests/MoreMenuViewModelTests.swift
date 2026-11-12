@@ -34,6 +34,32 @@ final class MoreMenuViewModelTests: XCTestCase {
         XCTAssertTrue(makeSut().orientationLocked)
     }
 
+    func testFocusModeStartsFromTheReader() {
+        let sut = MoreMenuViewModel(model: MoreMenuModel(isWordPointerActive: false, isFocusModeActive: true, state: MoreMenuControlsState()))
+
+        XCTAssertTrue(sut.focusModeEnabled)
+    }
+
+    func testTurningFocusModeOnTellsTheReader() {
+        let listener = MoreMenuListenerSpy()
+        let sut = makeSut()
+        sut.listener = listener
+
+        sut.focusModeEnabled = true
+
+        XCTAssertEqual(listener.focusModeUpdates, [true])
+    }
+
+    func testAdvancedOptionsTellsTheReader() {
+        let listener = MoreMenuListenerSpy()
+        let sut = makeSut()
+        sut.listener = listener
+
+        sut.openAdvancedOptions()
+
+        XCTAssertEqual(listener.advancedOptionsTaps, 1)
+    }
+
     // MARK: Private
 
     private let keys = ["lockOrientation", "landscapeOrientation"]
@@ -41,5 +67,22 @@ final class MoreMenuViewModelTests: XCTestCase {
 
     private func makeSut() -> MoreMenuViewModel {
         MoreMenuViewModel(model: MoreMenuModel(isWordPointerActive: false, state: MoreMenuControlsState()))
+    }
+}
+
+@MainActor
+private final class MoreMenuListenerSpy: MoreMenuListener {
+    private(set) var focusModeUpdates: [Bool] = []
+    private(set) var advancedOptionsTaps = 0
+
+    func onTranslationsSelectionsTapped() {}
+    func onIsWordPointerActiveUpdated(to isWordPointerActive: Bool) {}
+
+    func onFocusModeUpdated(to isFocusModeActive: Bool) {
+        focusModeUpdates.append(isFocusModeActive)
+    }
+
+    func onAdvancedOptionsTapped() {
+        advancedOptionsTaps += 1
     }
 }
