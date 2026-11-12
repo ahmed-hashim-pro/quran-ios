@@ -2,7 +2,6 @@ import AdvancedAudioOptionsFeature
 import AnalyticsFake
 import BatchDownloaderFake
 import Foundation
-import QueuePlayer
 import QuranAudio
 import QuranKit
 import ReciterListFeature
@@ -11,6 +10,7 @@ import ReciterServiceFake
 import SystemDependenciesFake
 import XCTest
 @testable import AudioBannerFeature
+@testable import QueuePlayer
 @testable import QuranAudioKit
 
 /// A banner view model on real services, with fakes only at the player, file system, network and bundle.
@@ -18,7 +18,7 @@ import XCTest
 final class AudioBannerHarness {
     // MARK: Lifecycle
 
-    init(pages: [Page]) async {
+    init(pages: [Page], beforeStart: (AudioBannerViewModel) -> Void = { _ in }) async {
         let bundle = SystemBundleFake()
         bundle.arrays["reciters.plist"] = [reciter.toPlistDictionary()] as NSArray
         let (downloadManager, _) = await downloads.makeDownloader()
@@ -36,6 +36,7 @@ final class AudioBannerHarness {
         )
         viewModel.listener = listener
         ReciterPreferences.shared.lastSelectedReciterId = reciter.id
+        beforeStart(viewModel)
         await viewModel.start()
     }
 
@@ -95,8 +96,10 @@ final class QueuingPlayerFake: QueuingPlayer {
     func pause() {}
     func resume() {}
 
+    /// Reports the end as the real player does, once someone is listening.
     func stop() {
         request = nil
+        actions?.playbackEnded()
     }
 
     func stepForward() {}

@@ -183,6 +183,41 @@ final class AudioBannerViewModelTests: XCTestCase {
         XCTAssertEqual(sut.bannerState, .playing)
     }
 
+    // MARK: - Playing on Open
+
+    func test_playOnOpen_streamsTheOpenPageWithStreamingOff() async throws {
+        let sut = await AudioBannerHarness(pages: [midSuraPage]) { $0.playOnOpen() }
+        sut.network.onWiFi = false
+
+        try await eventually { sut.player.request != nil }
+
+        XCTAssertEqual(sut.bannerState, .playing)
+        XCTAssertEqual(sut.player.request?.files.first?.url.isFileURL, false)
+        XCTAssertFalse(AudioPreferences.shared.streamingEnabled)
+    }
+
+    func test_playOnOpen_playsOnlyOnce() async throws {
+        let sut = await AudioBannerHarness(pages: [midSuraPage]) { $0.playOnOpen() }
+        try await eventually { sut.player.request != nil }
+        sut.viewModel.stopFromBanner()
+        XCTAssertEqual(sut.bannerState, .readyToPlay)
+
+        sut.viewModel.playFromBanner()
+
+        try await eventually { sut.bannerState == .downloading }
+    }
+
+    func test_playOnOpen_onAPageWithSeveralSurahStarts_asksWhereToStartWithoutStreaming() async throws {
+        let page = quran.pages.last!
+        let sut = await AudioBannerHarness(pages: [page]) { $0.playOnOpen() }
+        try await eventually { sut.viewModel.modalRequest?.owner == "playback_start" }
+
+        sut.viewModel.play(from: .sura(page.startSura))
+
+        try await eventually { sut.bannerState == .downloading }
+        XCTAssertNil(sut.player.request)
+    }
+
     // MARK: Private
 
     private static let preferenceKeys = [
