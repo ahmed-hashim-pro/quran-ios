@@ -732,6 +732,7 @@ private func featuresTargets() -> [[Target]] {
             "UIx",
             "ReciterListFeature",
             "AdvancedAudioOptionsFeature",
+            "SystemDependencies",
         ], testDependencies: [
             "AnalyticsFake",
             "BatchDownloaderFake",

@@ -49,6 +49,7 @@
 "download_error_network_retry" = "Ralat jaringan, mencuba semula…";
 "download_error_perms" = "Tidak dapat memuat turun kerana ralat keizinan pada peranti";
 "download_extra_data" = "Perlu memuat turun beberapa fail kecil untuk menyokong kemampuan berkongsi dan terjemahan. Muat turun sekarang?";
+"download_non_wifi_prompt" = "Anda tidak berada pada jaringan wifi. Teruskan juga muat turun data?";
 "download_processing" = "Proses Muat Turun…";
 "download_progress" = "Muat turun %1$@ / %2$@";
 "download_retry" = "Cuba semula";

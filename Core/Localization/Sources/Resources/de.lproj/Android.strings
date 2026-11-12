@@ -61,6 +61,7 @@ werden.\
 Teilen- und Übersetzungs-Funktion Gebrauch machen zu können. Möchten Sie die Dateien jetzt\
 herunterladen?\
 ";
+"download_non_wifi_prompt" = "Sie sind nicht mit einem W-LAN verbunden. Möchten Sie die Dateien trotzdem herunterladen?";
 "download_processing" = "Download wird durchgeführt…";
 "download_progress" = "Heruntergeladen %1$@ / %2$@";
 "download_retry" = "Nochmals versuchen";

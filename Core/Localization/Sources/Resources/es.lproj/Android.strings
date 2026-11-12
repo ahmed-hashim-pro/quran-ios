@@ -49,6 +49,7 @@
 "download_error_network_retry" = "Error de la red, intentando reanudar…";
 "download_error_perms" = "No se pudo descargar debido a un error de permisos";
 "download_extra_data" = "Tenemos que descargar una o dos pequeñas actualizaciones para la función de compartir la traducción. ¿Descargar ahora?";
+"download_non_wifi_prompt" = "No estás conectado a una red WiFi. ¿Descargar los datos de todos modos?";
 "download_processing" = "Procesando la descarga…";
 "download_progress" = "Descargado %1$@ / %2$@";
 "download_retry" = "Reintente";

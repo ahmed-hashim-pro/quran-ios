@@ -13,6 +13,7 @@ import QuranAudioKit
 import ReciterListFeature
 import ReciterService
 import SwiftUI
+import SystemDependencies
 import UIKit
 
 @MainActor
@@ -40,7 +41,8 @@ public struct AudioBannerBuilder {
                 downloader: container.downloadManager
             ),
             reciterListBuilder: ReciterListBuilder(),
-            advancedAudioOptionsBuilder: AdvancedAudioOptionsBuilder()
+            advancedAudioOptionsBuilder: AdvancedAudioOptionsBuilder(),
+            networkConnection: DefaultNetworkConnection()
         )
         let view = AudioBannerView(viewModel: viewModel)
             .enableToastPresenter(bottomBarsHeight: bottomBarsHeight)

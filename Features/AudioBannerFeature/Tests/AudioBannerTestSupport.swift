@@ -22,15 +22,17 @@ final class AudioBannerHarness {
         let bundle = SystemBundleFake()
         bundle.arrays["reciters.plist"] = [reciter.toPlistDictionary()] as NSArray
         let (downloadManager, _) = await downloads.makeDownloader()
+        downloader = QuranAudioDownloader(baseURL: URL(validURL: "https://example.com"), downloader: downloadManager, fileSystem: fileSystem)
         listener = AudioBannerListenerFake(visiblePages: pages)
         viewModel = AudioBannerViewModel(
             analytics: AnalyticsLibrarySpy(),
             reciterRetreiver: ReciterDataRetriever(bundle: bundle),
             recentRecitersService: RecentRecitersService(),
             audioPlayer: QuranAudioPlayer(player: player),
-            downloader: QuranAudioDownloader(baseURL: URL(validURL: "https://example.com"), downloader: downloadManager, fileSystem: fileSystem),
+            downloader: downloader,
             reciterListBuilder: ReciterListBuilder(),
-            advancedAudioOptionsBuilder: AdvancedAudioOptionsBuilder()
+            advancedAudioOptionsBuilder: AdvancedAudioOptionsBuilder(),
+            networkConnection: network
         )
         viewModel.listener = listener
         ReciterPreferences.shared.lastSelectedReciterId = reciter.id
@@ -42,7 +44,9 @@ final class AudioBannerHarness {
     let reciter = Reciter.gappedReciter
     let player = QueuingPlayerFake()
     let fileSystem = FileSystemFake()
+    let network = NetworkConnectionFake(onWiFi: true)
     let listener: AudioBannerListenerFake
+    let downloader: QuranAudioDownloader
     private(set) var viewModel: AudioBannerViewModel!
 
     var bannerState: BannerStateSummary {
@@ -50,6 +54,7 @@ final class AudioBannerHarness {
         case .playing(let paused, _): paused ? .paused : .playing
         case .readyToPlay: .readyToPlay
         case .downloading: .downloading
+        case .confirmingDownload: .confirmingDownload
         }
     }
 
@@ -63,6 +68,7 @@ enum BannerStateSummary: Equatable {
     case paused
     case readyToPlay
     case downloading
+    case confirmingDownload
 }
 
 @MainActor

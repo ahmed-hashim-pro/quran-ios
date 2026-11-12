@@ -119,6 +119,70 @@ final class AudioBannerViewModelTests: XCTestCase {
         XCTAssertEqual(AudioPreferences.shared.lastPlaybackRange(in: quran), range)
     }
 
+    // MARK: - Downloading off Wi-Fi
+
+    func test_play_offWiFi_asksBeforeDownloading() async throws {
+        let sut = await AudioBannerHarness(pages: [midSuraPage])
+        sut.network.onWiFi = false
+
+        sut.viewModel.playFromBanner()
+
+        try await eventually { sut.bannerState == .confirmingDownload }
+        let downloads = await sut.downloader.runningAudioDownloads()
+        XCTAssertTrue(downloads.isEmpty)
+        XCTAssertNil(sut.player.request)
+    }
+
+    func test_acceptingTheDownloadOffWiFi_downloadsWithoutAskingAgain() async throws {
+        let sut = await AudioBannerHarness(pages: [midSuraPage])
+        sut.network.onWiFi = false
+        sut.viewModel.playFromBanner()
+        try await eventually { sut.bannerState == .confirmingDownload }
+
+        sut.viewModel.acceptDownloadFromBanner()
+
+        try await eventually { sut.bannerState == .downloading }
+        var downloads = await sut.downloader.runningAudioDownloads()
+        for _ in 0 ..< 100 where downloads.isEmpty {
+            try await Task.sleep(nanoseconds: 10_000_000)
+            downloads = await sut.downloader.runningAudioDownloads()
+        }
+        XCTAssertEqual(downloads.count, 1)
+        XCTAssertEqual(sut.bannerState, .downloading)
+    }
+
+    func test_decliningTheDownloadOffWiFi_stops() async throws {
+        let sut = await AudioBannerHarness(pages: [midSuraPage])
+        sut.network.onWiFi = false
+        sut.viewModel.playFromBanner()
+        try await eventually { sut.bannerState == .confirmingDownload }
+
+        sut.viewModel.declineDownloadFromBanner()
+
+        XCTAssertEqual(sut.bannerState, .readyToPlay)
+        let downloads = await sut.downloader.runningAudioDownloads()
+        XCTAssertTrue(downloads.isEmpty)
+    }
+
+    func test_play_onWiFi_downloadsWithoutAsking() async throws {
+        let sut = await AudioBannerHarness(pages: [midSuraPage])
+
+        sut.viewModel.playFromBanner()
+
+        try await eventually { sut.bannerState == .downloading }
+    }
+
+    func test_streamingOffWiFi_playsWithoutAsking() async throws {
+        AudioPreferences.shared.streamingEnabled = true
+        let sut = await AudioBannerHarness(pages: [midSuraPage])
+        sut.network.onWiFi = false
+
+        sut.viewModel.playFromBanner()
+
+        try await eventually { sut.player.request != nil }
+        XCTAssertEqual(sut.bannerState, .playing)
+    }
+
     // MARK: Private
 
     private static let preferenceKeys = [

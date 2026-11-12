@@ -155,8 +155,9 @@ final class LocalizationCatalogTests: XCTestCase {
         "zh",
     ]
 
-    /// Android strings iOS uses that My Stream's Android has only in English and Arabic; other languages show English.
+    /// Android strings iOS uses that Android lacks in some languages, which show English instead.
     private let englishAndArabicAndroidKeys: Set<String> = [
+        "download_non_wifi_prompt",
         "playback_prompt_last_range",
         "playback_prompt_page_sub",
         "playback_prompt_reciter",

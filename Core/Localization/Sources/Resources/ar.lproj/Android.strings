@@ -55,6 +55,7 @@
 "download_error_perms" = "الصلاحيات غير كافية لتحميل الملفات";
 "download_extra_data" = "لدعم الترجمة و المشاركة يجب تحميل بعض\
 الملفات .. حمل الأن؟";
+"download_non_wifi_prompt" = "أنت لست على واي فاي. تحميل البيانات على أية حال؟";
 "download_processing" = "جاري تجهيز الملفات…";
 "download_progress" = "تم تحميل %1$@ / %2$@";
 "download_retry" = "أعد المحاولة";

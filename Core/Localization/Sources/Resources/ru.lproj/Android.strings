@@ -63,6 +63,7 @@ Editions Et Diffusion (Тунис)\
 "download_error_network_retry" = "Ошибка соединения, попытка возобновить…";
 "download_error_perms" = "Не удалось загрузить из-за ошибки разрешений";
 "download_extra_data" = "Для поддержки перевода и обмена аятами необходимо скачать один или два маленьких файла. Загрузить сейчас?";
+"download_non_wifi_prompt" = "Вы не подключены к Wi-Fi. Все равно продолжить загрузку?";
 "download_processing" = "Загрузка…";
 "download_progress" = "Загружено %1$@ / %2$@";
 "download_retry" = "Повторить";

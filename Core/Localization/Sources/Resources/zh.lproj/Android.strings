@@ -48,6 +48,7 @@
 "download_error_network_retry" = "网络错误，正在重新连接…";
 "download_error_perms" = "权限错误，无法下载";
 "download_extra_data" = "共享功能和下载功能需要下载一两个小文件，现在下载吗？";
+"download_non_wifi_prompt" = "没有连接到wifi. 要继续下载吗？";
 "download_processing" = "正在下载…";
 "download_progress" = "已下载 %1$@ / %2$@";
 "download_retry" = "重试";

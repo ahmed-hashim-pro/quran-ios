@@ -21,6 +21,13 @@ final class AudioBannerLayoutTests: XCTestCase {
         }
     }
 
+    func test_confirmingADownload_settles() {
+        guard #available(iOS 17.0, *) else { return }
+        for size in contentSizes {
+            assertSettles(.confirmingDownload, at: size)
+        }
+    }
+
     func test_textSizeChangeWhileShown_settles() {
         guard #available(iOS 17.0, *) else { return }
         for state: AudioBannerState in [.readyToPlay(reciter: "Husary"), .playing(paused: false, rate: 1.25)] {
@@ -83,7 +90,7 @@ final class AudioBannerLayoutTests: XCTestCase {
         let watchdog = HangWatchdog(message)
         let actions = AudioBannerActions(
             play: {}, pause: {}, resume: {}, stop: {}, backward: {}, forward: {}, cycleRepeat: {},
-            cancelDownloading: {}, reciters: {}, more: {}, setPlaybackRate: { _ in }
+            cancelDownloading: {}, acceptDownload: {}, declineDownload: {}, reciters: {}, more: {}, setPlaybackRate: { _ in }
         )
         let hosted = HostedBanner(AudioBannerViewUI(state: state, actions: actions, options: options), contentSize: size)
         if let newSize {

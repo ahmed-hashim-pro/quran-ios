@@ -24,6 +24,8 @@ struct AudioBannerView: View {
             forward: { viewModel.forwardFromBanner() },
             cycleRepeat: { viewModel.cycleRepeatFromBanner() },
             cancelDownloading: { await viewModel.cancelDownload() },
+            acceptDownload: { viewModel.acceptDownloadFromBanner() },
+            declineDownload: { viewModel.declineDownloadFromBanner() },
             reciters: { viewModel.presentReciterList() },
             more: { viewModel.showAdvancedAudioOptions() },
             setPlaybackRate: { viewModel.updatePlaybackRate(to: $0) }

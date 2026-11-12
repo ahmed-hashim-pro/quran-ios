@@ -20,6 +20,7 @@ import QuranKit
 import ReciterListFeature
 import ReciterService
 import SwiftUI
+import SystemDependencies
 import UIKit
 import UIx
 import Utilities
@@ -36,6 +37,7 @@ private enum PlaybackState {
     case paused
     case stopped
     case downloading(progress: Double)
+    case confirmingDownload
 
     var crashContextValue: String {
         switch self {
@@ -43,6 +45,7 @@ private enum PlaybackState {
         case .paused: "paused"
         case .stopped: "stopped"
         case .downloading: "downloading"
+        case .confirmingDownload: "confirming_download"
         }
     }
 }
@@ -60,7 +63,8 @@ public final class AudioBannerViewModel: ObservableObject {
         audioPlayer: QuranAudioPlayer,
         downloader: QuranAudioDownloader,
         reciterListBuilder: ReciterListBuilder,
-        advancedAudioOptionsBuilder: AdvancedAudioOptionsBuilder
+        advancedAudioOptionsBuilder: AdvancedAudioOptionsBuilder,
+        networkConnection: NetworkConnection
     ) {
         self.analytics = analytics
         self.reciterRetreiver = reciterRetreiver
@@ -69,6 +73,7 @@ public final class AudioBannerViewModel: ObservableObject {
         self.downloader = downloader
         self.reciterListBuilder = reciterListBuilder
         self.advancedAudioOptionsBuilder = advancedAudioOptionsBuilder
+        self.networkConnection = networkConnection
         playbackRate = AudioPreferences.shared.playbackRate
         crashContext.setAudioState(playingState.crashContextValue)
         crashContext.setAudioReciter(id: nil)
@@ -123,6 +128,7 @@ public final class AudioBannerViewModel: ObservableObject {
         case .paused: .playing(paused: true, rate: playbackRate)
         case .stopped: .readyToPlay(reciter: selectedReciter?.localizedName ?? "")
         case .downloading(let progress): .downloading(progress: progress)
+        case .confirmingDownload: .confirmingDownload
         }
     }
 
@@ -173,6 +179,9 @@ public final class AudioBannerViewModel: ObservableObject {
     private var remoteCommandsHandler: RemoteCommandsHandler?
     private let reciterListBuilder: ReciterListBuilder
     private let advancedAudioOptionsBuilder: AdvancedAudioOptionsBuilder
+    private let networkConnection: NetworkConnection
+    /// The play waiting for the user to allow downloading off Wi-Fi.
+    private var playAllowingDownload: (() -> Void)?
 
     @Published private var verseRuns: Runs = AudioPreferences.shared.verseRuns
     @Published private var listRuns: Runs = AudioPreferences.shared.listRuns
@@ -276,11 +285,13 @@ public final class AudioBannerViewModel: ObservableObject {
         listRuns: Runs,
         playbackRate: Float,
         verseDelay: VerseDelay,
-        repetitionDelay: RepetitionDelay
+        repetitionDelay: RepetitionDelay,
+        downloadsOffWiFi: Bool = false
     ) {
         guard let selectedReciter else {
             return
         }
+        playAllowingDownload = nil
         audioPlayer.stopAudio()
         let end = to ?? lastAyahFinder.findLastAyah(startAyah: from)
         audioRange = (start: from, end: end)
@@ -292,6 +303,13 @@ public final class AudioBannerViewModel: ObservableObject {
 
         recentRecitersService.updateRecentRecitersList(selectedReciter)
 
+        let replayAllowingDownload: () -> Void = { [weak self] in
+            self?.play(
+                from: from, to: to, verseRuns: verseRuns, listRuns: listRuns, playbackRate: playbackRate,
+                verseDelay: verseDelay, repetitionDelay: repetitionDelay, downloadsOffWiFi: true
+            )
+        }
+
         cancellableTasks.task { [weak self] in
             do {
                 let streaming = AudioPreferences.shared.streamingEnabled
@@ -302,6 +320,9 @@ public final class AudioBannerViewModel: ObservableObject {
                         let dbReady = self?.downloader.databaseDownloaded(reciter: selectedReciter) ?? true
                         logger.info("AudioBanner: streaming gapless – database ready? \(dbReady)")
                         if !dbReady {
+                            guard await self?.mayDownload(offWiFi: downloadsOffWiFi, orAskThen: replayAllowingDownload) == true else {
+                                return
+                            }
                             self?.playingState = .downloading(progress: 0)
                             let download = try await self?.downloader.downloadDatabase(reciter: selectedReciter)
                             guard let download else {
@@ -316,6 +337,9 @@ public final class AudioBannerViewModel: ObservableObject {
                     let downloaded = await self?.downloader.downloaded(reciter: selectedReciter, from: from, to: end) ?? true
                     logger.info("AudioBanner: reciter downloaded? \(downloaded)")
                     if !downloaded {
+                        guard await self?.mayDownload(offWiFi: downloadsOffWiFi, orAskThen: replayAllowingDownload) == true else {
+                            return
+                        }
                         self?.startDownloading()
                         let download = try await self?.downloader.download(from: from, to: end, reciter: selectedReciter)
                         guard let download else {
@@ -379,11 +403,26 @@ public final class AudioBannerViewModel: ObservableObject {
     }
 
     private func stop() {
+        playAllowingDownload = nil
         audioRange = nil
         audioPlayer.stopAudio()
     }
 
     // MARK: - Downloading
+
+    /// quran_android asks before downloading off Wi-Fi, then plays the request again once the user agrees.
+    private func mayDownload(offWiFi allowed: Bool, orAskThen playAllowingDownload: @escaping () -> Void) async -> Bool {
+        if allowed {
+            return true
+        }
+        if await networkConnection.isOnWiFi() {
+            return true
+        }
+        logger.info("AudioBanner: asking before downloading off Wi-Fi")
+        self.playAllowingDownload = playAllowingDownload
+        playingState = .confirmingDownload
+        return false
+    }
 
     private func observe(_ downloads: [DownloadBatchResponse]) async {
         await updateDownloadProgress()
@@ -548,6 +587,19 @@ extension AudioBannerViewModel {
         audioPlayer.setVerseRuns(runs)
     }
 
+    func acceptDownloadFromBanner() {
+        logger.info("AudioBanner: accept download tapped. State: \(playingState)")
+        let play = playAllowingDownload
+        playAllowingDownload = nil
+        play?()
+    }
+
+    func declineDownloadFromBanner() {
+        logger.info("AudioBanner: decline download tapped. State: \(playingState)")
+        playAllowingDownload = nil
+        playbackEnded()
+    }
+
     func cancelDownload() async {
         logger.info("AudioBanner: cancel download tapped. State: \(playingState)")
         await downloader.cancelAllAudioDownloads()
@@ -572,7 +624,7 @@ extension AudioBannerViewModel {
         switch playingState {
         case .stopped: playStartingCurrentPage()
         case .paused, .playing: resume()
-        case .downloading: break
+        case .downloading, .confirmingDownload: break
         }
     }
 

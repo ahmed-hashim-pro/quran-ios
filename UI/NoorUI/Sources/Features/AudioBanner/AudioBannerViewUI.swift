@@ -14,6 +14,8 @@ public enum AudioBannerState {
     case playing(paused: Bool, rate: Float)
     case readyToPlay(reciter: String)
     case downloading(progress: Double)
+    /// Asking before downloading off Wi-Fi.
+    case confirmingDownload
 }
 
 public struct AudioBannerActions {
@@ -25,6 +27,8 @@ public struct AudioBannerActions {
     let forward: () -> Void
     let cycleRepeat: () -> Void
     let cancelDownloading: AsyncAction
+    let acceptDownload: () -> Void
+    let declineDownload: () -> Void
     let reciters: () -> Void
     let more: () -> Void
     let setPlaybackRate: (Float) -> Void
@@ -38,6 +42,8 @@ public struct AudioBannerActions {
         forward: @escaping () -> Void,
         cycleRepeat: @escaping () -> Void,
         cancelDownloading: @escaping AsyncAction,
+        acceptDownload: @escaping () -> Void,
+        declineDownload: @escaping () -> Void,
         reciters: @escaping () -> Void,
         more: @escaping () -> Void,
         setPlaybackRate: @escaping (Float) -> Void
@@ -50,6 +56,8 @@ public struct AudioBannerActions {
         self.forward = forward
         self.cycleRepeat = cycleRepeat
         self.cancelDownloading = cancelDownloading
+        self.acceptDownload = acceptDownload
+        self.declineDownload = declineDownload
         self.reciters = reciters
         self.more = more
         self.setPlaybackRate = setPlaybackRate
@@ -77,6 +85,8 @@ public struct AudioBannerViewUI: View {
                 ReadyToPlay(reciter: reciter, actions: actions, options: options)
             case .downloading(let progress):
                 Downloading(progress: progress, actions: actions)
+            case .confirmingDownload:
+                ConfirmingDownload(actions: actions)
             }
         }
         .font(.title2)
@@ -317,6 +327,37 @@ private struct Downloading: View {
     }
 }
 
+/// quran_android's bar asks in place, between accepting and cancelling, rather than in an alert.
+private struct ConfirmingDownload: View {
+    let actions: AudioBannerActions
+
+    var body: some View {
+        HStack {
+            Button(action: actions.acceptDownload) {
+                AudioControlLabel {
+                    NoorSystemImage.checkmark.image
+                        .padding()
+                }
+                .overlay(Divider(), alignment: .trailing)
+            }
+            .accessibilityLabel(lAndroid("dialog_ok"))
+
+            Text(lAndroid("download_non_wifi_prompt"))
+                .font(.body)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button(action: actions.declineDownload) {
+                AudioControlLabel {
+                    NoorSystemImage.cancel.image
+                        .padding()
+                }
+            }
+            .accessibilityLabel(lAndroid("cancel"))
+        }
+    }
+}
+
 private struct BannerBackground: View {
     let color: Color
     @ScaledMetric private var cornerRadius = Dimensions.cornerRadius
@@ -365,6 +406,8 @@ private extension View {
         forward: {},
         cycleRepeat: {},
         cancelDownloading: {},
+        acceptDownload: {},
+        declineDownload: {},
         reciters: {},
         more: {},
         setPlaybackRate: { _ in }
@@ -389,6 +432,8 @@ private extension View {
             forward: {},
             cycleRepeat: {},
             cancelDownloading: {},
+            acceptDownload: {},
+            declineDownload: {},
             reciters: {},
             more: {},
             setPlaybackRate: { _ in }
@@ -431,10 +476,11 @@ private extension View {
 #Preview("Audio option indicators") {
     let actions = AudioBannerActions(
         play: {}, pause: {}, resume: {}, stop: {}, backward: {}, forward: {}, cycleRepeat: {},
-        cancelDownloading: {}, reciters: {}, more: {}, setPlaybackRate: { _ in }
+        cancelDownloading: {}, acceptDownload: {}, declineDownload: {}, reciters: {}, more: {}, setPlaybackRate: { _ in }
     )
     ScrollView {
         VStack {
+            AudioBannerViewUI(state: .confirmingDownload, actions: actions, options: .init())
             AudioBannerViewUI(state: .downloading(progress: 0.3), actions: actions, options: .init())
             AudioBannerViewUI(state: .downloading(progress: 0.3), actions: actions, options: .init(rate: 0.5))
             AudioBannerViewUI(state: .readyToPlay(reciter: "Mishary Al-afasy"), actions: actions, options: .init())
