@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import QuranAudio
 
 struct FramePlaying {
     var frameIndex: Int
@@ -31,7 +32,7 @@ struct AudioPlaying {
 
     // MARK: Internal
 
-    let request: AudioRequest
+    private(set) var request: AudioRequest
     private(set) var filePlaying: FilePlaying
     private(set) var framePlaying: FramePlaying
     var requestPlays: Int
@@ -59,6 +60,11 @@ struct AudioPlaying {
         }
         // different file
         return nil
+    }
+
+    /// Keeps the plays counted so far, so the playing frame stops at the new count if it already reached it.
+    mutating func setFrameRuns(_ runs: Runs) {
+        request = request.withFrameRuns(runs)
     }
 
     mutating func setPlaying(fileIndex: Int, frameIndex: Int) {

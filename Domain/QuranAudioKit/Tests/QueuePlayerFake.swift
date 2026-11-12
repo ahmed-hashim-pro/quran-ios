@@ -6,6 +6,7 @@
 //
 
 import QueuePlayer
+import QuranAudio
 @testable import QuranAudioKit
 
 @MainActor
@@ -81,6 +82,14 @@ class QueuePlayerFake: QueuingPlayer {
     }
 
     func setRate(_ rate: Float) {
+    }
+
+    func setFrameRuns(_ runs: Runs) {
+        switch state {
+        case .playing(let request): state = .playing(request.withFrameRuns(runs))
+        case .paused(let request): state = .paused(request.withFrameRuns(runs))
+        case .stopped: break
+        }
     }
 }
 

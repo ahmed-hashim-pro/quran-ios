@@ -7,6 +7,7 @@
 //
 
 import AVFoundation
+import QuranAudio
 
 public struct QueuePlayerActions: Sendable {
     // MARK: Lifecycle
@@ -76,6 +77,11 @@ public class QueuePlayer {
 
     public func stepForward() {
         player?.stepForward()
+    }
+
+    /// Changes how many times each frame plays from now on, without restarting playback.
+    public func setFrameRuns(_ runs: Runs) {
+        player?.setFrameRuns(runs)
     }
 
     public func stepBackward() {

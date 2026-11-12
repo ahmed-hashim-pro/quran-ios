@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import enum QuranAudio.Runs
 import Timing
 
 /// Waits out a between-verse delay of the given wall-clock seconds.
@@ -90,6 +91,10 @@ class AudioPlayer {
             timer?.cancel()
             waitUntilFrameEnds()
         }
+    }
+
+    func setFrameRuns(_ runs: Runs) {
+        audioPlaying.setFrameRuns(runs)
     }
 
     func stepForward() {
