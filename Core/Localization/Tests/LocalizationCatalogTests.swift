@@ -54,6 +54,16 @@ final class LocalizationCatalogTests: XCTestCase {
         }
     }
 
+    func testMyStreamAndroidStringsExistInEnglishAndArabic() throws {
+        for localization in ["en", "ar"] {
+            let missingKeys = englishAndArabicAndroidKeys.subtracting(try strings(named: "Android", for: localization).keys)
+            XCTAssertTrue(
+                missingKeys.isEmpty,
+                "\(localization) is missing used Android strings: \(missingKeys.sorted())."
+            )
+        }
+    }
+
     func testReferenceFormatsUseEachLocalizationsComma() throws {
         let commas = [
             "ar": "، ",
@@ -143,6 +153,15 @@ final class LocalizationCatalogTests: XCTestCase {
         "uz",
         "vi",
         "zh",
+    ]
+
+    /// Android strings iOS uses that My Stream's Android has only in English and Arabic; other languages show English.
+    private let englishAndArabicAndroidKeys: Set<String> = [
+        "playback_prompt_last_range",
+        "playback_prompt_page_sub",
+        "playback_prompt_reciter",
+        "playback_prompt_repeat_suffix",
+        "playback_prompt_sura_sub",
     ]
 
     private let englishFallbackKeys: Set<String> = [

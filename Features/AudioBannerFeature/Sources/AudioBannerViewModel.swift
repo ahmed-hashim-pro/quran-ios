@@ -159,6 +159,8 @@ public final class AudioBannerViewModel: ObservableObject {
 
     // MARK: Private
 
+    private static let playbackStartOwner = "playback_start"
+
     private var audioRange: AudioRange?
 
     private let analytics: AnalyticsLibrary
@@ -240,6 +242,24 @@ public final class AudioBannerViewModel: ObservableObject {
             verseDelay: AudioPreferences.shared.verseDelay,
             repetitionDelay: AudioPreferences.shared.repetitionDelay
         )
+    }
+
+    /// quran_android asks where to start when the page holds more than one place to begin.
+    private func playCurrentPageOrAskWhere() {
+        guard let page = listener?.visiblePages.min() else { return }
+        let choices = PlaybackStart.choices(on: page, lastRange: AudioPreferences.shared.lastPlaybackRange(in: page.quran))
+        guard !choices.isEmpty else {
+            playStartingCurrentPage()
+            return
+        }
+        logger.info("AudioBanner: asking where to start playing page \(page)")
+        let chooser = PlaybackStartChooserBuilder().build(
+            reciter: selectedReciter?.localizedName ?? "",
+            choices: choices,
+            choose: { [weak self] in self?.play(from: $0) },
+            close: { [weak self] in self?.modalRequest = .dismiss(owner: Self.playbackStartOwner) }
+        )
+        modalRequest = .present(chooser, owner: Self.playbackStartOwner, kind: "sheet")
     }
 
     private func setAudioRangeForCurrentPage() {
@@ -475,7 +495,24 @@ public final class AudioBannerViewModel: ObservableObject {
 extension AudioBannerViewModel {
     func playFromBanner() {
         logger.info("AudioBanner: play button tapped. State: \(playingState)")
-        playStartingCurrentPage()
+        playCurrentPageOrAskWhere()
+    }
+
+    /// Plays from what the user chose in the sheet asking where to start.
+    func play(from start: PlaybackStart) {
+        logger.info("AudioBanner: chose to start playing from \(start)")
+        modalRequest = .dismiss(owner: Self.playbackStartOwner)
+        analytics.playFrom(menu: false)
+        let preferences = AudioPreferences.shared
+        let (from, to, verseRuns, listRuns): (AyahNumber, AyahNumber?, Runs, Runs) = switch start {
+        case .lastRange(let range): (range.start, range.end, range.verseRuns, range.listRuns)
+        case .page(let page): (page.firstVerse, nil, preferences.verseRuns, preferences.listRuns)
+        case .sura(let sura): (sura.firstVerse, nil, preferences.verseRuns, preferences.listRuns)
+        }
+        play(
+            from: from, to: to, verseRuns: verseRuns, listRuns: listRuns, playbackRate: playbackRate,
+            verseDelay: preferences.verseDelay, repetitionDelay: preferences.repetitionDelay
+        )
     }
 
     func pauseFromBanner() {
@@ -620,6 +657,13 @@ extension AudioBannerViewModel: AdvancedAudioOptionsListener {
         AudioPreferences.shared.repetitionDelay = newOptions.repetitionDelay
         AudioPreferences.shared.verseRuns = newOptions.verseRuns
         AudioPreferences.shared.listRuns = newOptions.listRuns
+        // Only a range played from here is remembered, so playing a page never replaces it.
+        AudioPreferences.shared.saveLastPlaybackRange(LastPlaybackRange(
+            start: newOptions.start,
+            end: newOptions.end,
+            verseRuns: newOptions.verseRuns,
+            listRuns: newOptions.listRuns
+        ))
         play(
             from: newOptions.start,
             to: newOptions.end,
