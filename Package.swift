@@ -725,7 +725,7 @@ private func featuresTargets() -> [[Target]] {
             "QuranLocalization",
         ]),
 
-        target(type, name: "AudioBannerFeature", hasTests: false, dependencies: [
+        target(type, name: "AudioBannerFeature", dependencies: [
             "QuranAudio",
             "Caching",
             "AppDependencies",
@@ -733,6 +733,16 @@ private func featuresTargets() -> [[Target]] {
             "UIx",
             "ReciterListFeature",
             "AdvancedAudioOptionsFeature",
+            "SystemDependencies",
+        ], testDependencies: [
+            "AnalyticsFake",
+            "BatchDownloaderFake",
+            "QueuePlayer",
+            "QuranAudio",
+            "QuranAudioKit",
+            "QuranKit",
+            "ReciterServiceFake",
+            "SystemDependenciesFake",
         ]),
 
         target(type, name: "AudioDownloadsFeature", dependencies: [

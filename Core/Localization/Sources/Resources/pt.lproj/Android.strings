@@ -48,6 +48,7 @@
 "download_error_network_retry" = "Erro de rede, tentando resumir…";
 "download_error_perms" = "Não foi possível fazer o download, erro de permissão";
 "download_extra_data" = "Precisamos fazer download de um ou dois pequenos arquivos para apoiar tradução e compartilhamento. Fazer isso agora?";
+"download_non_wifi_prompt" = "Voce não está no wifi. Deseja realmente baixar os dados?";
 "download_processing" = "Processando Download…";
 "download_progress" = "Baixado %1$@ / %2$@";
 "download_retry" = "Tentar Novamente";

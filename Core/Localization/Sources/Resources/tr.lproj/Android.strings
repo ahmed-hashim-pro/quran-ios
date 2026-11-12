@@ -51,6 +51,7 @@ sonraki oynatılmasında indirilebilmesi için bu dosyaların cihazınızdaki ko
 "download_error_network_retry" = "İnternet bağlantısı hatası, kurtarılmaya çalışılıyor";
 "download_error_perms" = "İzin verilmediği için indirilemedi";
 "download_extra_data" = "Paylaşma ve meâl için bir veya iki küçük dosya indirilmesi gerekiyor. İzin veriyor musunuz?";
+"download_non_wifi_prompt" = "Kablosuz bağlantı mevctu değil. Yine de indirmek istiyor musunuz?";
 "download_processing" = "İndirme devam ediyor…";
 "download_progress" = "%1$@ / %2$@ indirildi";
 "download_retry" = "Tekrar dene";

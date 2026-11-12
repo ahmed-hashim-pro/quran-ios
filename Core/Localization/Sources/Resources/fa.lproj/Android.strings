@@ -48,6 +48,7 @@
 "download_error_network_retry" = "خطای شبکه، تلاش مجدد…";
 "download_error_perms" = "خطا در دسترسی";
 "download_extra_data" = "برای عملکرد مناسب امکانات اشتراک‌گذاری و ترجمه باید یکی دو فایل را بارگذاری نمایید. موافق‌اید؟";
+"download_non_wifi_prompt" = "شبکه بی‌سیم قطع است. بارگذاری انجام شود؟";
 "download_processing" = "در حال بارگذاری…";
 "download_progress" = "بارگذاری %1$@ / %2$@";
 "download_retry" = "تلاش دوباره";

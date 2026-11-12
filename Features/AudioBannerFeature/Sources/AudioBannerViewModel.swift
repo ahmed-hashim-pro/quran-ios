@@ -20,6 +20,7 @@ import QuranKit
 import ReciterListFeature
 import ReciterService
 import SwiftUI
+import SystemDependencies
 import UIKit
 import UIx
 import Utilities
@@ -36,6 +37,7 @@ private enum PlaybackState {
     case paused
     case stopped
     case downloading(progress: Double)
+    case confirmingDownload
 
     var crashContextValue: String {
         switch self {
@@ -43,6 +45,7 @@ private enum PlaybackState {
         case .paused: "paused"
         case .stopped: "stopped"
         case .downloading: "downloading"
+        case .confirmingDownload: "confirming_download"
         }
     }
 }
@@ -60,7 +63,8 @@ public final class AudioBannerViewModel: ObservableObject {
         audioPlayer: QuranAudioPlayer,
         downloader: QuranAudioDownloader,
         reciterListBuilder: ReciterListBuilder,
-        advancedAudioOptionsBuilder: AdvancedAudioOptionsBuilder
+        advancedAudioOptionsBuilder: AdvancedAudioOptionsBuilder,
+        networkConnection: NetworkConnection
     ) {
         self.analytics = analytics
         self.reciterRetreiver = reciterRetreiver
@@ -69,6 +73,7 @@ public final class AudioBannerViewModel: ObservableObject {
         self.downloader = downloader
         self.reciterListBuilder = reciterListBuilder
         self.advancedAudioOptionsBuilder = advancedAudioOptionsBuilder
+        self.networkConnection = networkConnection
         playbackRate = AudioPreferences.shared.playbackRate
         crashContext.setAudioState(playingState.crashContextValue)
         crashContext.setAudioReciter(id: nil)
@@ -97,6 +102,15 @@ public final class AudioBannerViewModel: ObservableObject {
         )
     }
 
+    /// quran_android's Home Read & listen: once the reader is up, Play the open page once, streamed so
+    /// nothing waits on a download. Asking where to start drops the streaming, as Android does.
+    public func playOnOpen() {
+        playsOnOpen = true
+        if hasStarted {
+            schedulePlayOnOpen()
+        }
+    }
+
     // MARK: Internal
 
     weak var listener: AudioBannerListener?
@@ -123,6 +137,7 @@ public final class AudioBannerViewModel: ObservableObject {
         case .paused: .playing(paused: true, rate: playbackRate)
         case .stopped: .readyToPlay(reciter: selectedReciter?.localizedName ?? "")
         case .downloading(let progress): .downloading(progress: progress)
+        case .confirmingDownload: .confirmingDownload
         }
     }
 
@@ -150,6 +165,10 @@ public final class AudioBannerViewModel: ObservableObject {
                 }.asCancellableTask()
             )
         }
+        hasStarted = true
+        if playsOnOpen {
+            schedulePlayOnOpen()
+        }
     }
 
     func updatePlaybackRate(to rate: Float) {
@@ -158,6 +177,8 @@ public final class AudioBannerViewModel: ObservableObject {
     }
 
     // MARK: Private
+
+    private static let playbackStartOwner = "playback_start"
 
     private var audioRange: AudioRange?
 
@@ -171,12 +192,17 @@ public final class AudioBannerViewModel: ObservableObject {
     private var remoteCommandsHandler: RemoteCommandsHandler?
     private let reciterListBuilder: ReciterListBuilder
     private let advancedAudioOptionsBuilder: AdvancedAudioOptionsBuilder
+    private let networkConnection: NetworkConnection
+    /// The play waiting for the user to allow downloading off Wi-Fi.
+    private var playAllowingDownload: (() -> Void)?
 
     @Published private var verseRuns: Runs = AudioPreferences.shared.verseRuns
     @Published private var listRuns: Runs = AudioPreferences.shared.listRuns
     private var verseDelay: VerseDelay = AudioPreferences.shared.verseDelay
     private var repetitionDelay: RepetitionDelay = AudioPreferences.shared.repetitionDelay
     private var reciters: [Reciter] = []
+    private var hasStarted = false
+    private var playsOnOpen = false
     private var cancellableTasks: Set<CancellableTask> = []
 
     @Published private var playingState: PlaybackState = .stopped {
@@ -225,7 +251,20 @@ public final class AudioBannerViewModel: ObservableObject {
 
     // MARK: - Playback Controls
 
-    private func playStartingCurrentPage() {
+    private func schedulePlayOnOpen() {
+        playsOnOpen = false
+        cancellableTasks.task { [weak self] in
+            // Android's delay, which also lets the reader finish appearing before a sheet can show.
+            try? await Task.sleep(nanoseconds: 900_000_000)
+            guard let self, case .stopped = playingState else {
+                return
+            }
+            logger.info("AudioBanner: playing the page the reader opened on")
+            playCurrentPageOrAskWhere(forcingStream: true)
+        }
+    }
+
+    private func playStartingCurrentPage(forcingStream: Bool = false) {
         guard let currentPage = listener?.visiblePages.min() else { return }
         logger.info("AudioBanner: Play starting page \(currentPage)")
 
@@ -238,8 +277,27 @@ public final class AudioBannerViewModel: ObservableObject {
             listRuns: AudioPreferences.shared.listRuns,
             playbackRate: playbackRate,
             verseDelay: AudioPreferences.shared.verseDelay,
-            repetitionDelay: AudioPreferences.shared.repetitionDelay
+            repetitionDelay: AudioPreferences.shared.repetitionDelay,
+            forcingStream: forcingStream
         )
+    }
+
+    /// quran_android asks where to start when the page holds more than one place to begin.
+    private func playCurrentPageOrAskWhere(forcingStream: Bool = false) {
+        guard let page = listener?.visiblePages.min() else { return }
+        let choices = PlaybackStart.choices(on: page, lastRange: AudioPreferences.shared.lastPlaybackRange(in: page.quran))
+        guard !choices.isEmpty else {
+            playStartingCurrentPage(forcingStream: forcingStream)
+            return
+        }
+        logger.info("AudioBanner: asking where to start playing page \(page)")
+        let chooser = PlaybackStartChooserBuilder().build(
+            reciter: selectedReciter?.localizedName ?? "",
+            choices: choices,
+            choose: { [weak self] in self?.play(from: $0) },
+            close: { [weak self] in self?.modalRequest = .dismiss(owner: Self.playbackStartOwner) }
+        )
+        modalRequest = .present(chooser, owner: Self.playbackStartOwner, kind: "sheet")
     }
 
     private func setAudioRangeForCurrentPage() {
@@ -256,11 +314,14 @@ public final class AudioBannerViewModel: ObservableObject {
         listRuns: Runs,
         playbackRate: Float,
         verseDelay: VerseDelay,
-        repetitionDelay: RepetitionDelay
+        repetitionDelay: RepetitionDelay,
+        forcingStream: Bool = false,
+        downloadsOffWiFi: Bool = false
     ) {
         guard let selectedReciter else {
             return
         }
+        playAllowingDownload = nil
         audioPlayer.stopAudio()
         let end = to ?? lastAyahFinder.findLastAyah(startAyah: from)
         audioRange = (start: from, end: end)
@@ -272,9 +333,21 @@ public final class AudioBannerViewModel: ObservableObject {
 
         recentRecitersService.updateRecentRecitersList(selectedReciter)
 
+        let replayAllowingDownload: () -> Void = { [weak self] in
+            self?.play(
+                from: from, to: to, verseRuns: verseRuns, listRuns: listRuns, playbackRate: playbackRate,
+                verseDelay: verseDelay, repetitionDelay: repetitionDelay, forcingStream: forcingStream, downloadsOffWiFi: true
+            )
+        }
+
         cancellableTasks.task { [weak self] in
             do {
-                let streaming = AudioPreferences.shared.streamingEnabled
+                var streaming = AudioPreferences.shared.streamingEnabled
+                if forcingStream, !streaming {
+                    // As on Android, audio already on the device plays from it.
+                    let downloaded = await self?.downloader.downloaded(reciter: selectedReciter, from: from, to: end) ?? true
+                    streaming = !downloaded
+                }
 
                 if streaming {
                     // For gapless streaming, the timing database must still be available locally.
@@ -282,6 +355,9 @@ public final class AudioBannerViewModel: ObservableObject {
                         let dbReady = self?.downloader.databaseDownloaded(reciter: selectedReciter) ?? true
                         logger.info("AudioBanner: streaming gapless – database ready? \(dbReady)")
                         if !dbReady {
+                            guard await self?.mayDownload(offWiFi: downloadsOffWiFi, orAskThen: replayAllowingDownload) == true else {
+                                return
+                            }
                             self?.playingState = .downloading(progress: 0)
                             let download = try await self?.downloader.downloadDatabase(reciter: selectedReciter)
                             guard let download else {
@@ -296,6 +372,9 @@ public final class AudioBannerViewModel: ObservableObject {
                     let downloaded = await self?.downloader.downloaded(reciter: selectedReciter, from: from, to: end) ?? true
                     logger.info("AudioBanner: reciter downloaded? \(downloaded)")
                     if !downloaded {
+                        guard await self?.mayDownload(offWiFi: downloadsOffWiFi, orAskThen: replayAllowingDownload) == true else {
+                            return
+                        }
                         self?.startDownloading()
                         let download = try await self?.downloader.download(from: from, to: end, reciter: selectedReciter)
                         guard let download else {
@@ -359,11 +438,26 @@ public final class AudioBannerViewModel: ObservableObject {
     }
 
     private func stop() {
+        playAllowingDownload = nil
         audioRange = nil
         audioPlayer.stopAudio()
     }
 
     // MARK: - Downloading
+
+    /// quran_android asks before downloading off Wi-Fi, then plays the request again once the user agrees.
+    private func mayDownload(offWiFi allowed: Bool, orAskThen playAllowingDownload: @escaping () -> Void) async -> Bool {
+        if allowed {
+            return true
+        }
+        if await networkConnection.isOnWiFi() {
+            return true
+        }
+        logger.info("AudioBanner: asking before downloading off Wi-Fi")
+        self.playAllowingDownload = playAllowingDownload
+        playingState = .confirmingDownload
+        return false
+    }
 
     private func observe(_ downloads: [DownloadBatchResponse]) async {
         await updateDownloadProgress()
@@ -475,7 +569,24 @@ public final class AudioBannerViewModel: ObservableObject {
 extension AudioBannerViewModel {
     func playFromBanner() {
         logger.info("AudioBanner: play button tapped. State: \(playingState)")
-        playStartingCurrentPage()
+        playCurrentPageOrAskWhere()
+    }
+
+    /// Plays from what the user chose in the sheet asking where to start.
+    func play(from start: PlaybackStart) {
+        logger.info("AudioBanner: chose to start playing from \(start)")
+        modalRequest = .dismiss(owner: Self.playbackStartOwner)
+        analytics.playFrom(menu: false)
+        let preferences = AudioPreferences.shared
+        let (from, to, verseRuns, listRuns): (AyahNumber, AyahNumber?, Runs, Runs) = switch start {
+        case .lastRange(let range): (range.start, range.end, range.verseRuns, range.listRuns)
+        case .page(let page): (page.firstVerse, nil, preferences.verseRuns, preferences.listRuns)
+        case .sura(let sura): (sura.firstVerse, nil, preferences.verseRuns, preferences.listRuns)
+        }
+        play(
+            from: from, to: to, verseRuns: verseRuns, listRuns: listRuns, playbackRate: playbackRate,
+            verseDelay: preferences.verseDelay, repetitionDelay: preferences.repetitionDelay
+        )
     }
 
     func pauseFromBanner() {
@@ -503,6 +614,27 @@ extension AudioBannerViewModel {
         stepBackward()
     }
 
+    /// Changes only the playing recitation, as quran_android's audio bar does, so the saved repeats stay.
+    func cycleRepeatFromBanner() {
+        let runs = verseRuns.nextAudioBarRepeat
+        logger.info("AudioBanner: repeat button tapped, verse runs \(runs). State: \(playingState)")
+        verseRuns = runs
+        audioPlayer.setVerseRuns(runs)
+    }
+
+    func acceptDownloadFromBanner() {
+        logger.info("AudioBanner: accept download tapped. State: \(playingState)")
+        let play = playAllowingDownload
+        playAllowingDownload = nil
+        play?()
+    }
+
+    func declineDownloadFromBanner() {
+        logger.info("AudioBanner: decline download tapped. State: \(playingState)")
+        playAllowingDownload = nil
+        playbackEnded()
+    }
+
     func cancelDownload() async {
         logger.info("AudioBanner: cancel download tapped. State: \(playingState)")
         await downloader.cancelAllAudioDownloads()
@@ -527,7 +659,7 @@ extension AudioBannerViewModel {
         switch playingState {
         case .stopped: playStartingCurrentPage()
         case .paused, .playing: resume()
-        case .downloading: break
+        case .downloading, .confirmingDownload: break
         }
     }
 
@@ -612,6 +744,13 @@ extension AudioBannerViewModel: AdvancedAudioOptionsListener {
         AudioPreferences.shared.repetitionDelay = newOptions.repetitionDelay
         AudioPreferences.shared.verseRuns = newOptions.verseRuns
         AudioPreferences.shared.listRuns = newOptions.listRuns
+        // Only a range played from here is remembered, so playing a page never replaces it.
+        AudioPreferences.shared.saveLastPlaybackRange(LastPlaybackRange(
+            start: newOptions.start,
+            end: newOptions.end,
+            verseRuns: newOptions.verseRuns,
+            listRuns: newOptions.listRuns
+        ))
         play(
             from: newOptions.start,
             to: newOptions.end,

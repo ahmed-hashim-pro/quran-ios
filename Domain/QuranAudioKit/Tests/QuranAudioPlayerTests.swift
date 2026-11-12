@@ -186,6 +186,23 @@ class QuranAudioPlayerTests: XCTestCase {
     }
 
     @MainActor
+    func test_setVerseRuns_changesThePlayingRequestsVerseRuns() async throws {
+        let suras = quran.suras
+        try await player.play(
+            reciter: gappedReciter, rate: 1, from: suras[0].firstVerse, to: suras[0].lastVerse,
+            verseRuns: .finite(1), listRuns: .finite(2)
+        )
+
+        player.setVerseRuns(.indefinite)
+
+        guard case .playing(let request) = queuePlayer.state else {
+            return XCTFail("Expected playback to continue, got \(queuePlayer.state)")
+        }
+        XCTAssertEqual(request.frameRuns, .indefinite)
+        XCTAssertEqual(request.requestRuns, .finite(2))
+    }
+
+    @MainActor
     func testRespondsToQueuePlayerDelegate() async throws {
         let frameChanges = [(file: 0, frame: 2), (file: 2, frame: 0)]
         for i in 0 ..< 2 {

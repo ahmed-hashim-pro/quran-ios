@@ -51,6 +51,7 @@
 "download_error_network_retry" = "Байланыс қателігі; қайта қосылуда…";
 "download_error_perms" = "Рұқсат қателігі";
 "download_extra_data" = "Бөлісу және аудармаларды пайдалану үшін бір-екі файл жүктеу керек. Қазір жүктелсін бе?";
+"download_non_wifi_prompt" = "Wi-Fi қосылмаған. Бәрібір жүктелсін бе?";
 "download_processing" = "Жүктеу…";
 "download_progress" = "%1$@/%2$@ жүктелді";
 "download_retry" = "Қайталау";

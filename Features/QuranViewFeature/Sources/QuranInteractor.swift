@@ -609,6 +609,8 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
     private var deps: Deps
     private let input: QuranInput
     private var audioBanner: AudioBannerViewModel?
+    /// The content loads again when its resources do, which must not play again.
+    private var didPlayOnOpen = false
     private var cancellables: Set<AnyCancellable> = []
     private var isWordPointerActive: Bool
     private var wordPointer: WordPointerViewController?
@@ -656,6 +658,10 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         )
         audioBanner = viewModel
         presenter?.presentAudioBanner(viewController)
+        if input.autoPlay, !didPlayOnOpen {
+            didPlayOnOpen = true
+            viewModel.playOnOpen()
+        }
 
         (contentViewController, contentViewModel) = presentQuranContent(with: input)
         presenter?.startHiddenBarsTimer()

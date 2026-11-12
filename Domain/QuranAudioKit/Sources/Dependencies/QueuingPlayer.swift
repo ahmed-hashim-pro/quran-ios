@@ -6,6 +6,7 @@
 //
 
 import QueuePlayer
+import QuranAudio
 
 @MainActor
 protocol QueuingPlayer: AnyObject {
@@ -18,6 +19,7 @@ protocol QueuingPlayer: AnyObject {
     func stepForward()
     func stepBackward()
     func setRate(_ rate: Float)
+    func setFrameRuns(_ runs: Runs)
 }
 
 extension QueuePlayer: QueuingPlayer {

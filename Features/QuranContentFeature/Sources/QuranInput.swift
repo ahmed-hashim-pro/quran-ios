@@ -12,10 +12,11 @@ import QuranKit
 public struct QuranInput {
     // MARK: Lifecycle
 
-    public init(initialPage: Page, lastPage: LastPage?, navigationAyah: AyahNumber?) {
+    public init(initialPage: Page, lastPage: LastPage?, navigationAyah: AyahNumber?, autoPlay: Bool = false) {
         self.initialPage = initialPage
         self.lastPage = lastPage
         self.navigationAyah = navigationAyah
+        self.autoPlay = autoPlay
     }
 
     // MARK: Public
@@ -23,4 +24,6 @@ public struct QuranInput {
     public let initialPage: Page
     public let lastPage: LastPage?
     public let navigationAyah: AyahNumber?
+    /// Plays the page the reader opens on once, streamed, as quran_android's Home Read & listen does.
+    public let autoPlay: Bool
 }

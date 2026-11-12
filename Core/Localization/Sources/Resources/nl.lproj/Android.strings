@@ -59,6 +59,7 @@ geprobeerd";
 "download_error_perms" = "Downloaden mislukt vanwege machtigingsfout";
 "download_extra_data" = "We moeten een of twee kleine bestanden downloaden om delen en\
 vertalen te ondersteunen. Download nu?";
+"download_non_wifi_prompt" = "Je maak geen gebruik van Wifi. Toch gegevens downloaden?";
 "download_processing" = "Download verwerken…";
 "download_progress" = "%1$@ Gedowload van %2$@";
 "download_retry" = "Opnieuw Proberen";

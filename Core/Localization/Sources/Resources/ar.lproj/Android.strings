@@ -55,6 +55,7 @@
 "download_error_perms" = "الصلاحيات غير كافية لتحميل الملفات";
 "download_extra_data" = "لدعم الترجمة و المشاركة يجب تحميل بعض\
 الملفات .. حمل الأن؟";
+"download_non_wifi_prompt" = "أنت لست على واي فاي. تحميل البيانات على أية حال؟";
 "download_processing" = "جاري تجهيز الملفات…";
 "download_progress" = "تم تحميل %1$@ / %2$@";
 "download_retry" = "أعد المحاولة";
@@ -151,6 +152,11 @@
 "play_from_here" = "بدء التلاوة من هذه الآية";
 "play_restrict_range" = "\" شغل ما تم اختياره من الآيات فقط\"";
 "play_verses_range" = "تشغيل مجموعة الآيات:";
+"playback_prompt_last_range" = "إعادة المقطع الأخير";
+"playback_prompt_page_sub" = "صفحة %1$@";
+"playback_prompt_reciter" = "بصوت %1$@";
+"playback_prompt_repeat_suffix" = "مع التكرار";
+"playback_prompt_sura_sub" = "من بداية السورة";
 "playback_prompt_title" = "بدء التشغيل من:";
 "playback_speed" = "سرعة التشغيل:";
 "please_grant_permissions" = "رجاء امنح الإذن في الإعدادات";

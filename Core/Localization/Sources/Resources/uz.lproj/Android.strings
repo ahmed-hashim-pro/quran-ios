@@ -53,6 +53,7 @@ versiyalar oʻchirildi, keyingi safar foydalanganingizda yangilangan versiyalari
 "download_error_network_retry" = "Tarqmoq xatoligi, qayta harakat qilinmoqda…";
 "download_error_perms" = "Ruhsat muammosi tufayli saqlab boʻlmadi";
 "download_extra_data" = "Boʻlishish va tarjimalardan foydalana olish uchun bir-ikkita kichik hajmdagi fayllar lozim. Hozir saqlab olasizmi?";
+"download_non_wifi_prompt" = "Wi-Fi tarmogʻiga ulanmagansiz, baribir fayllarni saqlab olmoqchimisiz?";
 "download_processing" = "Saqlanmoqda…";
 "download_progress" = "%1$@/%2$@ saqlandi";
 "download_retry" = "Qayta harakat qilish";

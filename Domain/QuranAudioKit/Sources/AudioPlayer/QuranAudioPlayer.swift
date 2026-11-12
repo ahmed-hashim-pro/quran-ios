@@ -83,6 +83,11 @@ public class QuranAudioPlayer {
         player.setRate(rate)
     }
 
+    /// Changes how many times each verse of the playing range plays, keeping its place, as quran_android's audio bar does.
+    public func setVerseRuns(_ runs: Runs) {
+        player.setFrameRuns(runs)
+    }
+
     // MARK: - Play
 
     public func play(

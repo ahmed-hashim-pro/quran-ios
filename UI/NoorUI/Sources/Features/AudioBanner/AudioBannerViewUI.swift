@@ -14,6 +14,8 @@ public enum AudioBannerState {
     case playing(paused: Bool, rate: Float)
     case readyToPlay(reciter: String)
     case downloading(progress: Double)
+    /// Asking before downloading off Wi-Fi.
+    case confirmingDownload
 }
 
 public struct AudioBannerActions {
@@ -23,7 +25,10 @@ public struct AudioBannerActions {
     let stop: () -> Void
     let backward: () -> Void
     let forward: () -> Void
+    let cycleRepeat: () -> Void
     let cancelDownloading: AsyncAction
+    let acceptDownload: () -> Void
+    let declineDownload: () -> Void
     let reciters: () -> Void
     let more: () -> Void
     let setPlaybackRate: (Float) -> Void
@@ -35,7 +40,10 @@ public struct AudioBannerActions {
         stop: @escaping () -> Void,
         backward: @escaping () -> Void,
         forward: @escaping () -> Void,
+        cycleRepeat: @escaping () -> Void,
         cancelDownloading: @escaping AsyncAction,
+        acceptDownload: @escaping () -> Void,
+        declineDownload: @escaping () -> Void,
         reciters: @escaping () -> Void,
         more: @escaping () -> Void,
         setPlaybackRate: @escaping (Float) -> Void
@@ -46,7 +54,10 @@ public struct AudioBannerActions {
         self.stop = stop
         self.backward = backward
         self.forward = forward
+        self.cycleRepeat = cycleRepeat
         self.cancelDownloading = cancelDownloading
+        self.acceptDownload = acceptDownload
+        self.declineDownload = declineDownload
         self.reciters = reciters
         self.more = more
         self.setPlaybackRate = setPlaybackRate
@@ -74,6 +85,8 @@ public struct AudioBannerViewUI: View {
                 ReadyToPlay(reciter: reciter, actions: actions, options: options)
             case .downloading(let progress):
                 Downloading(progress: progress, actions: actions)
+            case .confirmingDownload:
+                ConfirmingDownload(actions: actions)
             }
         }
         .font(.title2)
@@ -89,11 +102,13 @@ private struct AudioPlaying: View {
         case backward
         case playPause
         case forward
+        case repeatVerses
         case more
     }
 
     private struct Layout {
         let showsRate: Bool
+        let showsRepeat: Bool
         let positions: [Control: CGPoint]
 
         func position(for control: Control) -> CGPoint {
@@ -127,6 +142,10 @@ private struct AudioPlaying: View {
         }
     }
 
+    private var repeatButton: some View {
+        AudioRepeatButton(verseRuns: options.verseRuns, action: actions.cycleRepeat)
+    }
+
     var body: some View {
         GeometryReader { geometry in
             let layout = makeLayout(availableWidth: geometry.size.width)
@@ -158,6 +177,11 @@ private struct AudioPlaying: View {
                     .onSizeChange { updateSize($0, for: .forward) }
                     .position(layout.position(for: .forward))
 
+                if layout.showsRepeat {
+                    repeatButton
+                        .position(layout.position(for: .repeatVerses))
+                }
+
                 AudioOptionsButton(summary: options, action: actions.more)
                     .onSizeChange { updateSize($0, for: .more) }
                     .position(layout.position(for: .more))
@@ -165,6 +189,13 @@ private struct AudioPlaying: View {
                 rateMenu
                     .fixedSize()
                     .onSizeChange { updateSize($0, for: .rate) }
+                    .hidden()
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+
+                repeatButton
+                    .fixedSize()
+                    .onSizeChange { updateSize($0, for: .repeatVerses) }
                     .hidden()
                     .allowsHitTesting(false)
                     .accessibilityHidden(true)
@@ -182,6 +213,8 @@ private struct AudioPlaying: View {
         let rateSize = size(for: .rate)
         let backwardSize = size(for: .backward)
         let playPauseSize = size(for: .playPause)
+        let forwardSize = size(for: .forward)
+        let repeatSize = size(for: .repeatVerses)
         let moreSize = size(for: .more)
 
         let centerY = measuredHeight / 2
@@ -203,6 +236,14 @@ private struct AudioPlaying: View {
             logicalXPositions[.rate] = rateX
         }
 
+        // Each control already has its full tap target, so the repeat needs no spacing of its own.
+        let forwardEnd = playPauseX + playPauseSize.width + forwardSize.width
+        let repeatXAvailableSpace = availableWidth - moreSize.width - forwardEnd
+        let showsRepeat = controlSizes[.repeatVerses] != nil && repeatXAvailableSpace >= repeatSize.width
+        if showsRepeat {
+            logicalXPositions[.repeatVerses] = forwardEnd + repeatXAvailableSpace / 2 - repeatSize.width / 2
+        }
+
         let positions = Dictionary(
             uniqueKeysWithValues: logicalXPositions.map { control, logicalX in
                 let centerX = logicalX + size(for: control).width / 2
@@ -210,7 +251,7 @@ private struct AudioPlaying: View {
                 return (control, CGPoint(x: x, y: centerY))
             }
         )
-        return Layout(showsRate: showsRate, positions: positions)
+        return Layout(showsRate: showsRate, showsRepeat: showsRepeat, positions: positions)
     }
 
     private func size(for control: Control) -> CGSize {
@@ -286,6 +327,37 @@ private struct Downloading: View {
     }
 }
 
+/// quran_android's bar asks in place, between accepting and cancelling, rather than in an alert.
+private struct ConfirmingDownload: View {
+    let actions: AudioBannerActions
+
+    var body: some View {
+        HStack {
+            Button(action: actions.acceptDownload) {
+                AudioControlLabel {
+                    NoorSystemImage.checkmark.image
+                        .padding()
+                }
+                .overlay(Divider(), alignment: .trailing)
+            }
+            .accessibilityLabel(lAndroid("dialog_ok"))
+
+            Text(lAndroid("download_non_wifi_prompt"))
+                .font(.body)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button(action: actions.declineDownload) {
+                AudioControlLabel {
+                    NoorSystemImage.cancel.image
+                        .padding()
+                }
+            }
+            .accessibilityLabel(lAndroid("cancel"))
+        }
+    }
+}
+
 private struct BannerBackground: View {
     let color: Color
     @ScaledMetric private var cornerRadius = Dimensions.cornerRadius
@@ -332,7 +404,10 @@ private extension View {
         stop: {},
         backward: {},
         forward: {},
+        cycleRepeat: {},
         cancelDownloading: {},
+        acceptDownload: {},
+        declineDownload: {},
         reciters: {},
         more: {},
         setPlaybackRate: { _ in }
@@ -355,7 +430,10 @@ private extension View {
             stop: {},
             backward: {},
             forward: {},
+            cycleRepeat: {},
             cancelDownloading: {},
+            acceptDownload: {},
+            declineDownload: {},
             reciters: {},
             more: {},
             setPlaybackRate: { _ in }
@@ -397,11 +475,12 @@ private extension View {
 
 #Preview("Audio option indicators") {
     let actions = AudioBannerActions(
-        play: {}, pause: {}, resume: {}, stop: {}, backward: {}, forward: {},
-        cancelDownloading: {}, reciters: {}, more: {}, setPlaybackRate: { _ in }
+        play: {}, pause: {}, resume: {}, stop: {}, backward: {}, forward: {}, cycleRepeat: {},
+        cancelDownloading: {}, acceptDownload: {}, declineDownload: {}, reciters: {}, more: {}, setPlaybackRate: { _ in }
     )
     ScrollView {
         VStack {
+            AudioBannerViewUI(state: .confirmingDownload, actions: actions, options: .init())
             AudioBannerViewUI(state: .downloading(progress: 0.3), actions: actions, options: .init())
             AudioBannerViewUI(state: .downloading(progress: 0.3), actions: actions, options: .init(rate: 0.5))
             AudioBannerViewUI(state: .readyToPlay(reciter: "Mishary Al-afasy"), actions: actions, options: .init())

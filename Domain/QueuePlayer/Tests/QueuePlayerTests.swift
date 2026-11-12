@@ -174,6 +174,35 @@ final class QueuePlayerTests: XCTestCase {
         XCTAssertFalse(actions.playerItems[0].asset === actions.playerItems[1].asset)
     }
 
+    // MARK: - Verse Runs
+
+    func test_setFrameRuns_whilePlayingRepeatsTheFramesStillToPlay() async throws {
+        let request = try makeGappedRequest()
+
+        player.play(request: request, rate: 1)
+        player.setFrameRuns(.finite(2))
+
+        await fulfillment(of: [actions.playbackEnded], timeout: 5)
+        XCTAssertEqual(actions.events, [
+            .frameChanged(0, 0), .frameChanged(0, 0),
+            .frameChanged(1, 0), .frameChanged(1, 0),
+            .playbackEnded,
+        ])
+    }
+
+    func test_setFrameRuns_fromLoopingToOncePlaysTheLoopedFrameOnlyOnceMore() async throws {
+        let request = try makeGappedRequest(frameRuns: .indefinite, verseDelay: .full)
+
+        player.play(request: request, rate: 1)
+        // The first play has ended and the loop already decided to play it again.
+        await waitForVerseDelay()
+        player.setFrameRuns(.finite(1))
+        clock.elapseAll()
+
+        await fulfillment(of: [actions.playbackEnded], timeout: 5)
+        XCTAssertEqual(actions.events, [.frameChanged(0, 0), .frameChanged(0, 0), .frameChanged(1, 0), .playbackEnded])
+    }
+
     // MARK: - Verse Delay
 
     func test_resume_afterPausingDuringAVerseDelayPlaysTheNextVerse() async throws {
@@ -302,6 +331,7 @@ final class QueuePlayerTests: XCTestCase {
     /// 200 ms frame-end tolerance, so frames end even where the simulator doesn't advance playback.
     private func makeGappedRequest(
         durations: [TimeInterval] = [0.1, 0.1],
+        frameRuns: Runs = .finite(1),
         requestRuns: Runs = .finite(1),
         verseDelay: VerseDelay = .none,
         repetitionDelay: RepetitionDelay = .none
@@ -313,7 +343,7 @@ final class QueuePlayerTests: XCTestCase {
         return AudioRequest(
             files: files,
             endTime: nil,
-            frameRuns: .finite(1),
+            frameRuns: frameRuns,
             requestRuns: requestRuns,
             verseDelay: verseDelay,
             repetitionDelay: repetitionDelay

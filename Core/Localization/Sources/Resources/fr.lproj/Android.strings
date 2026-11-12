@@ -49,6 +49,7 @@
 "download_error_network_retry" = "Erreur réseau, tentative de reprise…";
 "download_error_perms" = "Impossible de télécharger en raison d\'une erreur d\'autorisation";
 "download_extra_data" = "Nous avons besoin de télécharger un ou deux petits fichiers pour le support du partage et de la traduction.  Télécharger maintenant ?";
+"download_non_wifi_prompt" = "Vous n\'êtes pas en wifi. Télécharger les données malgré tout ?";
 "download_processing" = "Traitement du téléchargement…";
 "download_progress" = "Téléchargé %1$@ / %2$@";
 "download_retry" = "Réessayer";
