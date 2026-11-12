@@ -41,6 +41,8 @@
 "quran.ayah.number" = "آية %1$d";
 // The page subtitle when two pages show side by side: %1$@ and %2$@ are the first and last localized page numbers and %3$@ is the localized juz number, such as "Pages 2–3, Juz' 1". Translators may reorder the placeholders.
 "quran.pages.description" = "صفحات %1$@–%2$@، جزء %3$@";
+// The reader's subtitle with the print's name after it, as quran_android shows it: %1$@ is the page subtitle, such as "Page 2, Juz' 1", and %2$@ is the print, such as "Warsh".
+"quran.pages.description.print" = "%1$@ · %2$@";
 
 // IndoPak sura names
 "quran.sura-name.indopak.17" = "بَنِي إِسْرَائِيل";
@@ -342,6 +344,16 @@
 // Hafs Tajweed
 "reading.tajweed.title" = "مصحف التجويد";
 "reading.tajweed.description" = "مصحف التجويد (حفص عن عاصم) – دار المعرفة";
+
+// quran_android's eight prints, as the reader's subtitle names them: Android's title without "Mushaf", cut to the words that set it apart where the whole title would not fit on a phone. Other languages show English, as Android does.
+"reading.madina-colored.short-name" = "المدينة الملوّن";
+"reading.hafs-1405.short-name" = "المدينة";
+"reading.new-madani.short-name" = "الطبعة الحديثة";
+"reading.tajweed.short-name" = "التجويد الملوّن";
+"reading.naskh.short-name" = "النسخ";
+"reading.shemerly.short-name" = "الشمرلي";
+"reading.qaloon.short-name" = "قالون";
+"reading.warsh.short-name" = "ورش";
 
 // MARK: - Diagnostics
 

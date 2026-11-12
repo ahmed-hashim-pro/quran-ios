@@ -148,6 +148,11 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         )
     }
 
+    /// quran_android names the print beside the page, but not while translations show.
+    var printName: String? {
+        quranMode == .arabic ? readingPreferences.reading.printName() : nil
+    }
+
     // MARK: - Audio Banner
 
     var visiblePages: [Page] { contentViewModel?.visiblePages ?? [] }
@@ -226,6 +231,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
     }
 
     func onQuranModeUpdated() {
+        presenter?.setVisiblePages(visiblePages)
         let noTranslationsSelected = selectedTranslationsPreferences.selectedTranslationIds.isEmpty
         if quranMode == .translation, noTranslationsSelected {
             presentTranslationsSelection()

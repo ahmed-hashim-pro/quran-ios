@@ -565,7 +565,7 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
             return
         }
         let suras = pages.map(\.startSura)
-        let pageDescription = pages.localizedDescription()
+        let pageDescription = pages.localizedDescription(printName: interactor.printName)
         let sura = suras.min()!
         let suraReference: MultipartText = "\(sura: sura)"
         if #available(iOS 26.0, *) {
