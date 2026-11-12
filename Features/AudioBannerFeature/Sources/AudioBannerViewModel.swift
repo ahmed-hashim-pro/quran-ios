@@ -503,6 +503,14 @@ extension AudioBannerViewModel {
         stepBackward()
     }
 
+    /// Changes only the playing recitation, as quran_android's audio bar does, so the saved repeats stay.
+    func cycleRepeatFromBanner() {
+        let runs = verseRuns.nextAudioBarRepeat
+        logger.info("AudioBanner: repeat button tapped, verse runs \(runs). State: \(playingState)")
+        verseRuns = runs
+        audioPlayer.setVerseRuns(runs)
+    }
+
     func cancelDownload() async {
         logger.info("AudioBanner: cancel download tapped. State: \(playingState)")
         await downloader.cancelAllAudioDownloads()

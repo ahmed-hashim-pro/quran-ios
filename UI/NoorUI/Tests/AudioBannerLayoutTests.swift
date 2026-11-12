@@ -82,7 +82,7 @@ final class AudioBannerLayoutTests: XCTestCase {
         let message = "\(state) at \(size.rawValue)" + (newSize.map { " then \($0.rawValue)" } ?? "")
         let watchdog = HangWatchdog(message)
         let actions = AudioBannerActions(
-            play: {}, pause: {}, resume: {}, stop: {}, backward: {}, forward: {},
+            play: {}, pause: {}, resume: {}, stop: {}, backward: {}, forward: {}, cycleRepeat: {},
             cancelDownloading: {}, reciters: {}, more: {}, setPlaybackRate: { _ in }
         )
         let hosted = HostedBanner(AudioBannerViewUI(state: state, actions: actions, options: options), contentSize: size)

@@ -23,6 +23,7 @@ public struct AudioBannerActions {
     let stop: () -> Void
     let backward: () -> Void
     let forward: () -> Void
+    let cycleRepeat: () -> Void
     let cancelDownloading: AsyncAction
     let reciters: () -> Void
     let more: () -> Void
@@ -35,6 +36,7 @@ public struct AudioBannerActions {
         stop: @escaping () -> Void,
         backward: @escaping () -> Void,
         forward: @escaping () -> Void,
+        cycleRepeat: @escaping () -> Void,
         cancelDownloading: @escaping AsyncAction,
         reciters: @escaping () -> Void,
         more: @escaping () -> Void,
@@ -46,6 +48,7 @@ public struct AudioBannerActions {
         self.stop = stop
         self.backward = backward
         self.forward = forward
+        self.cycleRepeat = cycleRepeat
         self.cancelDownloading = cancelDownloading
         self.reciters = reciters
         self.more = more
@@ -89,11 +92,13 @@ private struct AudioPlaying: View {
         case backward
         case playPause
         case forward
+        case repeatVerses
         case more
     }
 
     private struct Layout {
         let showsRate: Bool
+        let showsRepeat: Bool
         let positions: [Control: CGPoint]
 
         func position(for control: Control) -> CGPoint {
@@ -127,6 +132,10 @@ private struct AudioPlaying: View {
         }
     }
 
+    private var repeatButton: some View {
+        AudioRepeatButton(verseRuns: options.verseRuns, action: actions.cycleRepeat)
+    }
+
     var body: some View {
         GeometryReader { geometry in
             let layout = makeLayout(availableWidth: geometry.size.width)
@@ -158,6 +167,11 @@ private struct AudioPlaying: View {
                     .onSizeChange { updateSize($0, for: .forward) }
                     .position(layout.position(for: .forward))
 
+                if layout.showsRepeat {
+                    repeatButton
+                        .position(layout.position(for: .repeatVerses))
+                }
+
                 AudioOptionsButton(summary: options, action: actions.more)
                     .onSizeChange { updateSize($0, for: .more) }
                     .position(layout.position(for: .more))
@@ -165,6 +179,13 @@ private struct AudioPlaying: View {
                 rateMenu
                     .fixedSize()
                     .onSizeChange { updateSize($0, for: .rate) }
+                    .hidden()
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+
+                repeatButton
+                    .fixedSize()
+                    .onSizeChange { updateSize($0, for: .repeatVerses) }
                     .hidden()
                     .allowsHitTesting(false)
                     .accessibilityHidden(true)
@@ -182,6 +203,8 @@ private struct AudioPlaying: View {
         let rateSize = size(for: .rate)
         let backwardSize = size(for: .backward)
         let playPauseSize = size(for: .playPause)
+        let forwardSize = size(for: .forward)
+        let repeatSize = size(for: .repeatVerses)
         let moreSize = size(for: .more)
 
         let centerY = measuredHeight / 2
@@ -203,6 +226,14 @@ private struct AudioPlaying: View {
             logicalXPositions[.rate] = rateX
         }
 
+        // Each control already has its full tap target, so the repeat needs no spacing of its own.
+        let forwardEnd = playPauseX + playPauseSize.width + forwardSize.width
+        let repeatXAvailableSpace = availableWidth - moreSize.width - forwardEnd
+        let showsRepeat = controlSizes[.repeatVerses] != nil && repeatXAvailableSpace >= repeatSize.width
+        if showsRepeat {
+            logicalXPositions[.repeatVerses] = forwardEnd + repeatXAvailableSpace / 2 - repeatSize.width / 2
+        }
+
         let positions = Dictionary(
             uniqueKeysWithValues: logicalXPositions.map { control, logicalX in
                 let centerX = logicalX + size(for: control).width / 2
@@ -210,7 +241,7 @@ private struct AudioPlaying: View {
                 return (control, CGPoint(x: x, y: centerY))
             }
         )
-        return Layout(showsRate: showsRate, positions: positions)
+        return Layout(showsRate: showsRate, showsRepeat: showsRepeat, positions: positions)
     }
 
     private func size(for control: Control) -> CGSize {
@@ -332,6 +363,7 @@ private extension View {
         stop: {},
         backward: {},
         forward: {},
+        cycleRepeat: {},
         cancelDownloading: {},
         reciters: {},
         more: {},
@@ -355,6 +387,7 @@ private extension View {
             stop: {},
             backward: {},
             forward: {},
+            cycleRepeat: {},
             cancelDownloading: {},
             reciters: {},
             more: {},
@@ -397,7 +430,7 @@ private extension View {
 
 #Preview("Audio option indicators") {
     let actions = AudioBannerActions(
-        play: {}, pause: {}, resume: {}, stop: {}, backward: {}, forward: {},
+        play: {}, pause: {}, resume: {}, stop: {}, backward: {}, forward: {}, cycleRepeat: {},
         cancelDownloading: {}, reciters: {}, more: {}, setPlaybackRate: { _ in }
     )
     ScrollView {
