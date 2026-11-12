@@ -569,29 +569,17 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         defer { isBookmarkMutationInFlight = false }
 
         logger.info("Quran: onBookmarkBarButtonTapped")
-        let pages = visiblePages
-        let visibleBookmarks = pageBookmarks.filter { pages.contains($0.page) }
+        guard let page = visiblePages.bookmarkPage else {
+            return
+        }
 
         do {
-            let analytics = deps.analytics
-            let service = deps.pageBookmarkService
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                if visibleBookmarks.isEmpty {
-                    for page in pages {
-                        group.addTask {
-                            analytics.bookmarkPage(page)
-                            try await service.insertPageBookmark(page)
-                        }
-                    }
-                } else {
-                    for bookmark in visibleBookmarks {
-                        group.addTask {
-                            analytics.removeBookmarkPage(bookmark.page)
-                            try await service.removePageBookmark(bookmark)
-                        }
-                    }
-                }
-                try await group.waitForAll()
+            if let bookmark = pageBookmarks.first(where: { $0.page == page }) {
+                deps.analytics.removeBookmarkPage(page)
+                try await deps.pageBookmarkService.removePageBookmark(bookmark)
+            } else {
+                deps.analytics.bookmarkPage(page)
+                try await deps.pageBookmarkService.insertPageBookmark(page)
             }
         } catch {
             crasher.recordError(error, reason: "Failed to toggle page bookmark")
