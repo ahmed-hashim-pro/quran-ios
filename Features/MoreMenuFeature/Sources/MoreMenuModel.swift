@@ -44,6 +44,8 @@ public struct MoreMenuControlsState {
     public var ayahIndicators = ConfigState.alwaysOff
     #endif
     public var orientation = ConfigState.conditional
+    /// quran_android's Lock orientation and Landscape. While locked, the rotate buttons are disabled.
+    public var orientationLock = ConfigState.alwaysOff
     public var fontSize = ConfigState.conditional
     public var twoPages = ConfigState.conditional
     /// Shown only where two pages are, and usable only while they are on.

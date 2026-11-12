@@ -55,6 +55,7 @@ protocol QuranPresentable: UIViewController {
 
     func setVisiblePages(_ pages: [Page])
     func showMarkerPopup(_ text: String)
+    func updateSupportedOrientations()
     #if QURAN_SYNC
     func updateReadingBookmark(_ bookmark: PlacedReadingBookmark?)
     #else
@@ -139,6 +140,14 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         contentStatePreferences.quranMode
     }
 
+    var lockedOrientations: UIInterfaceOrientationMask? {
+        ReaderOrientationLock.supportedOrientations(
+            locked: contentStatePreferences.lockOrientation,
+            landscape: contentStatePreferences.landscapeOrientation,
+            idiom: UIDevice.current.userInterfaceIdiom
+        )
+    }
+
     // MARK: - Audio Banner
 
     var visiblePages: [Page] { contentViewModel?.visiblePages ?? [] }
@@ -160,6 +169,11 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
 
         contentStatePreferences.$quranMode
             .sink { [weak self] _ in self?.onQuranModeUpdated() }
+            .store(in: &cancellables)
+
+        contentStatePreferences.$lockOrientation
+            .merge(with: contentStatePreferences.$landscapeOrientation)
+            .sink { [weak self] _ in self?.presenter?.updateSupportedOrientations() }
             .store(in: &cancellables)
 
         deps.resources.publisher
@@ -205,6 +219,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         state.audioManager = deps.audioDownloadsBuilder == nil ? .alwaysOff : .alwaysOn
         state.search = deps.searchBuilder == nil ? .alwaysOff : .alwaysOn
         state.mushafPrint = deps.choosePrint == nil ? .alwaysOff : .alwaysOn
+        state.orientationLock = ReaderOrientationLock.isAvailable(on: UIDevice.current.userInterfaceIdiom) ? .alwaysOn : .alwaysOff
         let model = MoreMenuModel(isWordPointerActive: isWordPointerActive, state: state)
         let viewController = deps.moreMenuBuilder.build(withListener: self, model: model)
         presenter?.presentMoreMenu(viewController)
