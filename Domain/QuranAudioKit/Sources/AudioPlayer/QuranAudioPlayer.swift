@@ -88,6 +88,12 @@ public class QuranAudioPlayer {
         player.setFrameRuns(runs)
     }
 
+    /// Changes the playing range's repeats and delays, keeping its place, as quran_android's audio panel does
+    /// when it applies to the range already playing.
+    public func setRepeats(verseRuns: Runs, listRuns: Runs, verseDelay: VerseDelay, repetitionDelay: RepetitionDelay) {
+        player.setRepeats(frameRuns: verseRuns, requestRuns: listRuns, verseDelay: verseDelay, repetitionDelay: repetitionDelay)
+    }
+
     // MARK: - Play
 
     public func play(

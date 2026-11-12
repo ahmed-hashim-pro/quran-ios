@@ -84,6 +84,16 @@ public class QueuePlayer {
         player?.setFrameRuns(runs)
     }
 
+    /// Changes the frame and request runs and the delays from now on, without restarting playback.
+    public func setRepeats(frameRuns: Runs, requestRuns: Runs, verseDelay: VerseDelay, repetitionDelay: RepetitionDelay) {
+        player?.setRepeats(
+            frameRuns: frameRuns,
+            requestRuns: requestRuns,
+            verseDelay: verseDelay,
+            repetitionDelay: repetitionDelay
+        )
+    }
+
     public func stepBackward() {
         player?.stepBackgward()
     }

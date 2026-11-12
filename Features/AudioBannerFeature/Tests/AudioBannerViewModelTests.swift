@@ -1,6 +1,9 @@
 import AdvancedAudioOptionsFeature
+import QueuePlayer
 import QuranAudio
 import QuranKit
+import ReciterService
+import ReciterServiceFake
 import XCTest
 @testable import AudioBannerFeature
 @testable import QuranAudioKit
@@ -117,6 +120,85 @@ final class AudioBannerViewModelTests: XCTestCase {
         try await eventually { sut.player.request != nil }
 
         XCTAssertEqual(AudioPreferences.shared.lastPlaybackRange(in: quran), range)
+    }
+
+    // MARK: - Audio Options
+
+    func test_applyingTheOptionsToThePlayingRange_changesItsRepeatsWithoutRestarting() async throws {
+        AudioPreferences.shared.streamingEnabled = true
+        let sut = await AudioBannerHarness(pages: [midSuraPage])
+        sut.viewModel.playFromBanner()
+        try await eventually { sut.bannerState == .playing }
+        var options = try XCTUnwrap(sut.viewModel.audioOptionsToShow())
+
+        options.verseRuns = .finite(3)
+        options.listRuns = .indefinite
+        options.verseDelay = .half
+        sut.viewModel.updateAudioOptions(to: options)
+
+        XCTAssertEqual(sut.player.plays, 1)
+        XCTAssertEqual(sut.player.request?.frameRuns, .finite(3))
+        XCTAssertEqual(sut.player.request?.requestRuns, .indefinite)
+        XCTAssertEqual(sut.player.request?.verseDelay, .half)
+        XCTAssertEqual(sut.viewModel.audioOptionsSummary.verseRuns, .finite(3))
+        XCTAssertEqual(sut.bannerState, .playing)
+    }
+
+    func test_applyingTheOptionsToAnotherRange_playsItFromItsStart() async throws {
+        AudioPreferences.shared.streamingEnabled = true
+        let sut = await AudioBannerHarness(pages: [midSuraPage])
+        sut.viewModel.playFromBanner()
+        try await eventually { sut.bannerState == .playing }
+        var options = try XCTUnwrap(sut.viewModel.audioOptionsToShow())
+
+        options.end = options.start.next!
+        sut.viewModel.updateAudioOptions(to: options)
+
+        try await eventually { sut.player.plays == 2 }
+        XCTAssertEqual(sut.player.request?.files.count, 2)
+    }
+
+    func test_optionsWhileStopped_showTheRememberedRangeCoveringThePage() async throws {
+        let start = midSuraPage.firstVerse
+        let range = LastPlaybackRange(start: start, end: quran.pages[3].firstVerse, verseRuns: .finite(2), listRuns: .finite(3))
+        AudioPreferences.shared.saveLastPlaybackRange(range)
+        let sut = await AudioBannerHarness(pages: [midSuraPage])
+
+        let options = try XCTUnwrap(sut.viewModel.audioOptionsToShow())
+
+        XCTAssertEqual(options.start, range.start)
+        XCTAssertEqual(options.end, range.end)
+        XCTAssertEqual(options.verseRuns, .finite(2))
+        XCTAssertEqual(options.listRuns, .finite(3))
+    }
+
+    func test_optionsWhileStopped_showThePageWhenNoRememberedRangeCoversIt() async throws {
+        AudioPreferences.shared.saveLastPlaybackRange(LastPlaybackRange(
+            start: quran.suras[35].firstVerse, end: quran.suras[35].lastVerse, verseRuns: .finite(2), listRuns: .finite(1)
+        ))
+        let sut = await AudioBannerHarness(pages: [midSuraPage])
+
+        let options = try XCTUnwrap(sut.viewModel.audioOptionsToShow())
+
+        XCTAssertEqual(options.start, midSuraPage.firstVerse)
+        XCTAssertEqual(options.verseRuns, AudioPreferences.shared.verseRuns)
+    }
+
+    // MARK: - Reciter
+
+    func test_choosingAReciterWhilePlaying_keepsTheRecitationGoingForTheNextPlay() async throws {
+        AudioPreferences.shared.streamingEnabled = true
+        let sut = await AudioBannerHarness(pages: [midSuraPage])
+        sut.viewModel.playFromBanner()
+        try await eventually { sut.bannerState == .playing }
+        let request = sut.player.request
+
+        sut.viewModel.onSelectedReciterChanged(to: .gaplessReciter)
+
+        XCTAssertEqual(sut.bannerState, .playing)
+        XCTAssertEqual(sut.player.request, request)
+        XCTAssertEqual(sut.player.plays, 1)
+        XCTAssertEqual(ReciterPreferences.shared.lastSelectedReciterId, Reciter.gaplessReciter.id)
     }
 
     // MARK: - Downloading off Wi-Fi

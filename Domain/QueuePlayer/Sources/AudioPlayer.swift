@@ -97,6 +97,15 @@ class AudioPlayer {
         audioPlaying.setFrameRuns(runs)
     }
 
+    func setRepeats(frameRuns: Runs, requestRuns: Runs, verseDelay: VerseDelay, repetitionDelay: RepetitionDelay) {
+        audioPlaying.setRepeats(
+            frameRuns: frameRuns,
+            requestRuns: requestRuns,
+            verseDelay: verseDelay,
+            repetitionDelay: repetitionDelay
+        )
+    }
+
     func stepForward() {
         if let next = audioPlaying.nextFrame() {
             audioPlaying.resetFramePlays()
@@ -272,7 +281,7 @@ class AudioPlayer {
                     audioPlaying.resetFramePlays()
                     // At the repeat boundary, wait the between-verse delay for the
                     // verse that just finished plus the fixed between-repetition pause.
-                    let repeatDelay = delay + request.repetitionDelay.seconds
+                    let repeatDelay = delay + audioPlaying.request.repetitionDelay.seconds
                     playAfterVerseDelay(repeatDelay) { [weak self] in
                         self?.play(fileIndex: 0, frameIndex: 0, forceSeek: true)
                     }
@@ -293,7 +302,7 @@ class AudioPlayer {
     /// just finished: its recited (wall-clock) length times the selected
     /// multiplier. Returns 0 when no delay is configured.
     private func verseDelayDuration(frameEnd: TimeInterval) -> TimeInterval {
-        let multiplier = request.verseDelay.multiplier
+        let multiplier = audioPlaying.request.verseDelay.multiplier
         guard multiplier > 0 else {
             return 0
         }

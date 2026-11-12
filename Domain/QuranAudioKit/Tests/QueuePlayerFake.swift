@@ -91,6 +91,17 @@ class QueuePlayerFake: QueuingPlayer {
         case .stopped: break
         }
     }
+
+    func setRepeats(frameRuns: Runs, requestRuns: Runs, verseDelay: VerseDelay, repetitionDelay: RepetitionDelay) {
+        let update = { (request: AudioRequest) in
+            request.withRepeats(frameRuns: frameRuns, requestRuns: requestRuns, verseDelay: verseDelay, repetitionDelay: repetitionDelay)
+        }
+        switch state {
+        case .playing(let request): state = .playing(update(request))
+        case .paused(let request): state = .paused(update(request))
+        case .stopped: break
+        }
+    }
 }
 
 extension QueuePlayerFake.PlayingState {

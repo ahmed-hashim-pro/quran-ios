@@ -52,7 +52,7 @@ final class AudioBannerHarness {
 
     var bannerState: BannerStateSummary {
         switch viewModel.audioBannerState {
-        case .playing(let paused, _): paused ? .paused : .playing
+        case .playing(let paused, _, _): paused ? .paused : .playing
         case .readyToPlay: .readyToPlay
         case .downloading: .downloading
         case .confirmingDownload: .confirmingDownload
@@ -88,9 +88,11 @@ final class AudioBannerListenerFake: AudioBannerListener {
 final class QueuingPlayerFake: QueuingPlayer {
     var actions: QueuePlayerActions?
     private(set) var request: AudioRequest?
+    private(set) var plays = 0
 
     func play(request: AudioRequest, rate: Float) {
         self.request = request
+        plays += 1
     }
 
     func pause() {}
@@ -108,6 +110,12 @@ final class QueuingPlayerFake: QueuingPlayer {
 
     func setFrameRuns(_ runs: Runs) {
         request = request?.withFrameRuns(runs)
+    }
+
+    func setRepeats(frameRuns: Runs, requestRuns: Runs, verseDelay: VerseDelay, repetitionDelay: RepetitionDelay) {
+        request = request?.withRepeats(
+            frameRuns: frameRuns, requestRuns: requestRuns, verseDelay: verseDelay, repetitionDelay: repetitionDelay
+        )
     }
 }
 

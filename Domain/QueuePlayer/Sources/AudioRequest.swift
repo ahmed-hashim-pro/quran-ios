@@ -31,6 +31,10 @@ public struct AudioRequest: Equatable, Sendable {
     public let repetitionDelay: RepetitionDelay
 
     public func withFrameRuns(_ frameRuns: Runs) -> AudioRequest {
+        withRepeats(frameRuns: frameRuns, requestRuns: requestRuns, verseDelay: verseDelay, repetitionDelay: repetitionDelay)
+    }
+
+    public func withRepeats(frameRuns: Runs, requestRuns: Runs, verseDelay: VerseDelay, repetitionDelay: RepetitionDelay) -> AudioRequest {
         AudioRequest(
             files: files,
             endTime: endTime,

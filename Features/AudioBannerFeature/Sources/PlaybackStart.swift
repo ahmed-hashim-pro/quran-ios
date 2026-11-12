@@ -17,15 +17,15 @@ enum PlaybackStart: Equatable, Sendable {
     /// starts no surah or opens with the only surah starting on it.
     static func choices(on page: Page, lastRange: LastPlaybackRange?) -> [PlaybackStart] {
         let startingSuras = page.suras.filter { $0.page == page }
-        let offersLastRange = lastRange.map { $0.start.page <= page && page <= $0.end.page } ?? false
+        let coveringRange = rememberedRange(covering: page, lastRange: lastRange)
         let opensWithItsOnlySura = startingSuras.count == 1 && startingSuras[0] == page.startSura
-        guard offersLastRange || !(startingSuras.isEmpty || opensWithItsOnlySura) else {
+        guard coveringRange != nil || !(startingSuras.isEmpty || opensWithItsOnlySura) else {
             return []
         }
 
         var choices: [PlaybackStart] = []
-        if offersLastRange, let lastRange {
-            choices.append(.lastRange(lastRange))
+        if let coveringRange {
+            choices.append(.lastRange(coveringRange))
         }
         // A surah opening the page already starts it.
         if startingSuras.first != page.startSura {
@@ -33,5 +33,13 @@ enum PlaybackStart: Equatable, Sendable {
         }
         choices += startingSuras.map(PlaybackStart.sura)
         return choices
+    }
+
+    /// `lastRange` when its pages take in `page`: quran_android then offers it, and its audio panel shows it.
+    static func rememberedRange(covering page: Page, lastRange: LastPlaybackRange?) -> LastPlaybackRange? {
+        guard let lastRange, lastRange.start.page <= page, page <= lastRange.end.page else {
+            return nil
+        }
+        return lastRange
     }
 }

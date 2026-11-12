@@ -203,6 +203,33 @@ final class QueuePlayerTests: XCTestCase {
         XCTAssertEqual(actions.events, [.frameChanged(0, 0), .frameChanged(0, 0), .frameChanged(1, 0), .playbackEnded])
     }
 
+    func test_setRepeats_whilePlayingRepeatsTheRangeWithoutRestartingIt() async throws {
+        let request = try makeGappedRequest()
+
+        player.play(request: request, rate: 1)
+        player.setRepeats(frameRuns: .finite(1), requestRuns: .finite(2), verseDelay: .none, repetitionDelay: .none)
+
+        await fulfillment(of: [actions.playbackEnded], timeout: 5)
+        XCTAssertEqual(actions.events, [
+            .frameChanged(0, 0), .frameChanged(1, 0),
+            .frameChanged(0, 0), .frameChanged(1, 0),
+            .playbackEnded,
+        ])
+    }
+
+    func test_setRepeats_appliesANewVerseDelayToTheVersesStillToPlay() async throws {
+        let request = try makeGappedRequest()
+
+        player.play(request: request, rate: 1)
+        player.setRepeats(frameRuns: .finite(1), requestRuns: .finite(1), verseDelay: .full, repetitionDelay: .none)
+        await waitForVerseDelay()
+        clock.elapseAll()
+
+        await fulfillment(of: [actions.playbackEnded], timeout: 5)
+        XCTAssertEqual(actions.events, [.frameChanged(0, 0), .frameChanged(1, 0), .playbackEnded])
+        XCTAssertEqual(clock.delays.count, 1)
+    }
+
     // MARK: - Verse Delay
 
     func test_resume_afterPausingDuringAVerseDelayPlaysTheNextVerse() async throws {

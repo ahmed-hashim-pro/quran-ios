@@ -17,7 +17,7 @@ final class AudioBannerLayoutTests: XCTestCase {
     func test_playingWithNonDefaultOptions_settles() {
         guard #available(iOS 17.0, *) else { return }
         for size in contentSizes {
-            assertSettles(.playing(paused: false, rate: 1.25), at: size)
+            assertSettles(.playing(paused: false, rate: 1.25, reciter: "Husary"), at: size)
         }
     }
 
@@ -30,7 +30,7 @@ final class AudioBannerLayoutTests: XCTestCase {
 
     func test_textSizeChangeWhileShown_settles() {
         guard #available(iOS 17.0, *) else { return }
-        for state: AudioBannerState in [.readyToPlay(reciter: "Husary"), .playing(paused: false, rate: 1.25)] {
+        for state: AudioBannerState in [.readyToPlay(reciter: "Husary"), .playing(paused: false, rate: 1.25, reciter: "Husary")] {
             assertSettles(state, at: .large, changingTo: .accessibilityExtraExtraExtraLarge)
         }
     }

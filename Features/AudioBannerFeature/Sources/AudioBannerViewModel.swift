@@ -133,8 +133,8 @@ public final class AudioBannerViewModel: ObservableObject {
 
     var audioBannerState: AudioBannerState {
         switch playingState {
-        case .playing: .playing(paused: false, rate: playbackRate)
-        case .paused: .playing(paused: true, rate: playbackRate)
+        case .playing: .playing(paused: false, rate: playbackRate, reciter: selectedReciter?.localizedName ?? "")
+        case .paused: .playing(paused: true, rate: playbackRate, reciter: selectedReciter?.localizedName ?? "")
         case .stopped: .readyToPlay(reciter: selectedReciter?.localizedName ?? "")
         case .downloading(let progress): .downloading(progress: progress)
         case .confirmingDownload: .confirmingDownload
@@ -181,6 +181,9 @@ public final class AudioBannerViewModel: ObservableObject {
     private static let playbackStartOwner = "playback_start"
 
     private var audioRange: AudioRange?
+    /// May differ from the selected reciter: quran_android's bar takes a new reciter for the next play.
+    private var playingReciter: Reciter?
+    private var playingAyah: AyahNumber?
 
     private let analytics: AnalyticsLibrary
     private let reciterRetreiver: ReciterDataRetriever
@@ -325,6 +328,7 @@ public final class AudioBannerViewModel: ObservableObject {
         audioPlayer.stopAudio()
         let end = to ?? lastAyahFinder.findLastAyah(startAyah: from)
         audioRange = (start: from, end: end)
+        playingReciter = selectedReciter
         self.verseRuns = verseRuns
         self.listRuns = listRuns
         self.playbackRate = playbackRate
@@ -504,6 +508,7 @@ public final class AudioBannerViewModel: ObservableObject {
     private func playing(ayah: AyahNumber) {
         logger.info("AudioBanner: playing verse \(ayah.nonLocalizedDescription)")
         crashContext.setPlayingAyah(sura: ayah.sura.suraNumber, ayah: ayah.ayah)
+        playingAyah = ayah
         listener?.highlightReadingAyah(ayah)
     }
 
@@ -517,6 +522,7 @@ public final class AudioBannerViewModel: ObservableObject {
         logger.info("AudioBanner: onPlaybackOrDownloadingCompleted")
 
         crashContext.clearPlayingAyah()
+        playingAyah = nil
         playingState = .stopped
     }
 
@@ -694,10 +700,15 @@ extension AudioBannerViewModel: ReciterListListener {
         )
     }
 
+    /// As on quran_android, a reciter picked while playing takes over at the next play.
     public func onSelectedReciterChanged(to reciter: Reciter) {
         logger.info("AudioBanner: onSelectedReciterChanged to \(reciter.id)")
         selectReciter(reciter)
-        playingState = .stopped
+        if case .stopped = playingState {
+            playingState = .stopped
+        } else {
+            objectWillChange.send()
+        }
     }
 }
 
@@ -719,11 +730,7 @@ extension AudioBannerViewModel: AdvancedAudioOptionsListener {
 
     func showAdvancedAudioOptions() {
         logger.info("AudioBanner: more button tapped. State: \(playingState)")
-        if case .stopped = playingState {
-            setAudioRangeForCurrentPage()
-        }
-
-        guard let options = advancedAudioOptions else {
+        guard let options = audioOptionsToShow() else {
             crashContext.setAdvancedAudioOptionsPhase("unavailable")
             logger.info("AudioBanner: showAdvancedAudioOptions couldn't construct advanced audio options")
             return
@@ -733,6 +740,48 @@ extension AudioBannerViewModel: AdvancedAudioOptionsListener {
             advancedAudioOptionsBuilder.build(withListener: self, options: options),
             owner: "advanced_audio_options",
             kind: "sheet"
+        )
+    }
+
+    /// What quran_android's audio panel shows: the remembered range with its repeats when it covers the page
+    /// being played, or read while stopped; otherwise what is playing, or the page.
+    func audioOptionsToShow() -> AdvancedAudioOptions? {
+        guard let selectedReciter else {
+            return nil
+        }
+        let preferences = AudioPreferences.shared
+        var stopped = false
+        if case .stopped = playingState {
+            stopped = true
+        }
+        let page = stopped ? listener?.visiblePages.min() : (playingAyah ?? audioRange?.start)?.page
+        let lastRange = page.flatMap { preferences.lastPlaybackRange(in: $0.quran) }
+        if let page, let range = PlaybackStart.rememberedRange(covering: page, lastRange: lastRange) {
+            return AdvancedAudioOptions(
+                reciter: selectedReciter,
+                start: range.start,
+                end: range.end,
+                verseRuns: range.verseRuns,
+                listRuns: range.listRuns,
+                verseDelay: stopped ? preferences.verseDelay : verseDelay,
+                repetitionDelay: stopped ? preferences.repetitionDelay : repetitionDelay
+            )
+        }
+        guard stopped else {
+            return advancedAudioOptions
+        }
+        setAudioRangeForCurrentPage()
+        guard let audioRange else {
+            return nil
+        }
+        return AdvancedAudioOptions(
+            reciter: selectedReciter,
+            start: audioRange.start,
+            end: audioRange.end,
+            verseRuns: preferences.verseRuns,
+            listRuns: preferences.listRuns,
+            verseDelay: preferences.verseDelay,
+            repetitionDelay: preferences.repetitionDelay
         )
     }
 
@@ -751,6 +800,23 @@ extension AudioBannerViewModel: AdvancedAudioOptionsListener {
             verseRuns: newOptions.verseRuns,
             listRuns: newOptions.listRuns
         ))
+        if isPlaying(newOptions) {
+            // As quran_android's panel does for the range it plays: change its repeats, keep its place.
+            logger.info("AudioBanner: updating the playing range's repeats in place")
+            verseRuns = newOptions.verseRuns
+            listRuns = newOptions.listRuns
+            verseDelay = newOptions.verseDelay
+            repetitionDelay = newOptions.repetitionDelay
+            audioPlayer.setRepeats(
+                verseRuns: newOptions.verseRuns,
+                listRuns: newOptions.listRuns,
+                verseDelay: newOptions.verseDelay,
+                repetitionDelay: newOptions.repetitionDelay
+            )
+            audioPlayer.setRate(AudioPreferences.shared.playbackRate)
+            crashContext.setAdvancedAudioOptionsPhase("applied")
+            return
+        }
         play(
             from: newOptions.start,
             to: newOptions.end,
@@ -761,6 +827,17 @@ extension AudioBannerViewModel: AdvancedAudioOptionsListener {
             repetitionDelay: newOptions.repetitionDelay
         )
         crashContext.setAdvancedAudioOptionsPhase("applied")
+    }
+
+    private func isPlaying(_ options: AdvancedAudioOptions) -> Bool {
+        switch playingState {
+        case .playing, .paused: break
+        case .stopped, .downloading, .confirmingDownload: return false
+        }
+        guard let audioRange, let playingReciter else {
+            return false
+        }
+        return audioRange.start == options.start && audioRange.end == options.end && playingReciter.id == options.reciter.id
     }
 
     public func dismissAudioOptions() {

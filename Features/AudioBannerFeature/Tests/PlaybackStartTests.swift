@@ -56,6 +56,17 @@ final class PlaybackStartTests: XCTestCase {
         XCTAssertEqual(PlaybackStart.choices(on: quran.pages[2], lastRange: range), [])
     }
 
+    func test_rememberedRange_coversThePagesBetweenItsEnds() {
+        let range = LastPlaybackRange(
+            start: quran.pages[2].firstVerse, end: quran.pages[4].firstVerse, verseRuns: .finite(2), listRuns: .finite(1)
+        )
+
+        XCTAssertNil(PlaybackStart.rememberedRange(covering: quran.pages[1], lastRange: range))
+        XCTAssertEqual(PlaybackStart.rememberedRange(covering: quran.pages[3], lastRange: range), range)
+        XCTAssertEqual(PlaybackStart.rememberedRange(covering: quran.pages[4], lastRange: range), range)
+        XCTAssertNil(PlaybackStart.rememberedRange(covering: quran.pages[5], lastRange: range))
+    }
+
     // MARK: Private
 
     private let quran = Quran.hafsMadani1405

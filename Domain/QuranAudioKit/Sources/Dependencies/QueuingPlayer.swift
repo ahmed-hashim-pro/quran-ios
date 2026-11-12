@@ -20,6 +20,7 @@ protocol QueuingPlayer: AnyObject {
     func stepBackward()
     func setRate(_ rate: Float)
     func setFrameRuns(_ runs: Runs)
+    func setRepeats(frameRuns: Runs, requestRuns: Runs, verseDelay: VerseDelay, repetitionDelay: RepetitionDelay)
 }
 
 extension QueuePlayer: QueuingPlayer {

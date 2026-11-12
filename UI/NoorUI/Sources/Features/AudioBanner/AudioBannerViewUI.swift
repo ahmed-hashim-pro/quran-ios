@@ -11,7 +11,7 @@ import UIKit
 import UIx
 
 public enum AudioBannerState {
-    case playing(paused: Bool, rate: Float)
+    case playing(paused: Bool, rate: Float, reciter: String)
     case readyToPlay(reciter: String)
     case downloading(progress: Double)
     /// Asking before downloading off Wi-Fi.
@@ -79,8 +79,11 @@ public struct AudioBannerViewUI: View {
     public var body: some View {
         ZStack {
             switch state {
-            case .playing(let paused, let rate):
-                AudioPlaying(paused: paused, currentRate: rate, actions: actions, options: options)
+            case .playing(let paused, let rate, let reciter):
+                VStack(spacing: 0) {
+                    PlayingReciter(reciter: reciter, action: actions.reciters)
+                    AudioPlaying(paused: paused, currentRate: rate, actions: actions, options: options)
+                }
             case .readyToPlay(let reciter):
                 ReadyToPlay(reciter: reciter, actions: actions, options: options)
             case .downloading(let progress):
@@ -264,6 +267,31 @@ private struct AudioPlaying: View {
     }
 }
 
+/// quran_android's playing bar names the reciter above its controls, and a tap picks another.
+private struct PlayingReciter: View {
+    let reciter: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                NoorSystemImage.reciter.image
+                Text(reciter)
+                    .lineLimit(1)
+                Image(systemName: "chevron.up.chevron.down")
+                    .imageScale(.small)
+            }
+            .font(.footnote)
+            .frame(maxWidth: .infinity, minHeight: AudioControlMetrics.minimumTapLength)
+            .contentShape(Rectangle())
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(l("audio.reciter"))
+        .accessibilityValue(reciter)
+        .accessibilityAddTraits(.isButton)
+    }
+}
+
 private struct ReadyToPlay: View {
     let reciter: String
     let actions: AudioBannerActions
@@ -413,7 +441,7 @@ private extension View {
         setPlaybackRate: { _ in }
     )
     AudioBannerViewUI(
-        state: .playing(paused: false, rate: 1),
+        state: .playing(paused: false, rate: 1, reciter: "Mishary Al-afasy"),
         actions: actions,
         options: .init()
     )
@@ -440,7 +468,7 @@ private extension View {
         )
 
         let readyToPlay = AudioBannerState.readyToPlay(reciter: "Mishary Al-afasy")
-        let playing = AudioBannerState.playing(paused: false, rate: 1.0)
+        let playing = AudioBannerState.playing(paused: false, rate: 1.0, reciter: "Mishary Al-afasy")
         let downloading = AudioBannerState.downloading(progress: 0.7)
         var state: AudioBannerState {
             switch counter % 3 {
@@ -489,15 +517,15 @@ private extension View {
                 options: .init(rate: 0.5, verseRuns: .finite(3), rangeRuns: .finite(2))
             )
             AudioBannerViewUI(
-                state: .playing(paused: false, rate: 0.5), actions: actions,
+                state: .playing(paused: false, rate: 0.5, reciter: "Mishary Al-afasy"), actions: actions,
                 options: .init(rate: 0.5, verseRuns: .finite(3), rangeRuns: .finite(2))
             )
             AudioBannerViewUI(
-                state: .playing(paused: true, rate: 1), actions: actions,
+                state: .playing(paused: true, rate: 1, reciter: "Mishary Al-afasy"), actions: actions,
                 options: .init(rangeRuns: .indefinite)
             )
             AudioBannerViewUI(
-                state: .playing(paused: true, rate: 1), actions: actions,
+                state: .playing(paused: true, rate: 1, reciter: "Mishary Al-afasy"), actions: actions,
                 options: .init()
             )
             AudioBannerViewUI(

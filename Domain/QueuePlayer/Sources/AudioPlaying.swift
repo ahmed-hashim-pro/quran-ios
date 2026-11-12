@@ -67,6 +67,16 @@ struct AudioPlaying {
         request = request.withFrameRuns(runs)
     }
 
+    /// Keeps the plays counted so far, as `setFrameRuns` does, for the range's runs too.
+    mutating func setRepeats(frameRuns: Runs, requestRuns: Runs, verseDelay: VerseDelay, repetitionDelay: RepetitionDelay) {
+        request = request.withRepeats(
+            frameRuns: frameRuns,
+            requestRuns: requestRuns,
+            verseDelay: verseDelay,
+            repetitionDelay: repetitionDelay
+        )
+    }
+
     mutating func setPlaying(fileIndex: Int, frameIndex: Int) {
         filePlaying = FilePlaying(fileIndex: fileIndex)
         framePlaying.frameIndex = frameIndex
