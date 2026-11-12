@@ -7,6 +7,7 @@
 //
 
 import AnnotationsService
+import AppDependencies
 import Crashing
 import Localization
 import NoorUI
@@ -67,6 +68,7 @@ final class AyahMenuViewModel {
         #endif
         var canTag = false
         var canShareText = true
+        var shareLink: AyahShareLink?
         let quranContentStatePreferences = QuranContentStatePreferences.shared
     }
 
@@ -244,6 +246,7 @@ final class AyahMenuViewModel {
 
     var canTag: Bool { deps.canTag }
     var canShareText: Bool { deps.canShareText }
+    var canShareLink: Bool { deps.shareLink != nil }
 
     func tag() {
         logger.info("AyahMenu: tag. Verses: \(deps.verses.map(\.nonLocalizedDescription).joined(separator: ", "))")
@@ -276,7 +279,10 @@ final class AyahMenuViewModel {
         logger.info("AyahMenu: share. Verses: \(deps.verses.map(\.nonLocalizedDescription).joined(separator: ", "))")
         do {
             let lines = try await retrieveSelectedAyahText()
-            let withNewLines = lines.joined(separator: "\n")
+            var withNewLines = lines.joined(separator: "\n")
+            if let signature = deps.shareLink?.signature {
+                withNewLines += "\n\n" + signature
+            }
             listener?.shareText([withNewLines], in: deps.sourceView, at: deps.pointInView)
         } catch {
             if error.isCancelled {
@@ -285,6 +291,16 @@ final class AyahMenuViewModel {
             crasher.recordError(error, reason: "Failed to retrieve verse text for share")
             listener?.showError(error)
         }
+    }
+
+    /// quran_android's Share Ayah Link: "Surah name: ayah" over the link to the first selected ayah.
+    func shareLink() {
+        guard let link = deps.shareLink, let ayah = deps.verses.first else {
+            return
+        }
+        logger.info("AyahMenu: share link. Verse: \(ayah.nonLocalizedDescription)")
+        let label = lFormat("sura_ayah_sharing_str", table: .android, ayah.sura.localizedName(), ayah.ayah)
+        listener?.shareText(["\(label)\n\(link.url.absoluteString)"], in: deps.sourceView, at: deps.pointInView)
     }
 
     // MARK: Private

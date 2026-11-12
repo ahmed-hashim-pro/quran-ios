@@ -19,6 +19,7 @@ import MobileSync
 import NoorUI
 import NotePersistence
 import PageBookmarkPersistence
+import QuranKit
 import QuranResources
 import QuranTextKit
 import ReadingService
@@ -52,6 +53,10 @@ public protocol AppDependencies {
     /// The Home Screen icons the app offers.
     var appIconCatalog: AppIconCatalog { get }
 
+    /// A link that opens this ayah in the host app, with the line that signs shared ayah text.
+    /// The ayah menu offers Share Ayah Link only when there is one.
+    func ayahShareLink(for ayah: AyahNumber) -> AyahShareLink?
+
     #if QURAN_SYNC
     var authenticationClient: any AuthenticationClient { get }
     var quranDataService: MobileSyncDataService { get }
@@ -60,8 +65,20 @@ public protocol AppDependencies {
     #endif
 }
 
+public struct AyahShareLink {
+    public let url: URL
+    public let signature: String
+
+    public init(url: URL, signature: String) {
+        self.url = url
+        self.signature = signature
+    }
+}
+
 extension AppDependencies {
     public var quranUthmaniV2Database: URL { QuranResources.quranUthmaniV2Database }
+
+    public func ayahShareLink(for ayah: AyahNumber) -> AyahShareLink? { nil }
 
     @MainActor
     public func lastPageService() -> any LastPageService {

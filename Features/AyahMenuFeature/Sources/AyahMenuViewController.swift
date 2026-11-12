@@ -43,6 +43,7 @@ final class AyahMenuViewController: UIViewController {
             copy = { [weak self] in await self?.viewModel.copy() }
             share = { [weak self] in await self?.viewModel.share() }
         }
+        let shareLink: AsyncAction? = viewModel.canShareLink ? { [weak self] in self?.viewModel.shareLink() } : nil
         let actions = AyahMenuUI.Actions(
             play: { [weak self] in self?.viewModel.play() },
             repeatVerses: { [weak self] in self?.viewModel.repeatVerses() },
@@ -53,7 +54,8 @@ final class AyahMenuViewController: UIViewController {
             copy: copy,
             share: share,
             showReadingBookmarkMenu: { [weak self] in self?.viewModel.showReadingBookmarkMenu() },
-            tag: tag
+            tag: tag,
+            shareLink: shareLink
         )
         #else
         let tag: AsyncAction? = viewModel.canTag ? { [weak self] in self?.viewModel.tag() } : nil
@@ -63,6 +65,7 @@ final class AyahMenuViewController: UIViewController {
             copy = { [weak self] in await self?.viewModel.copy() }
             share = { [weak self] in await self?.viewModel.share() }
         }
+        let shareLink: AsyncAction? = viewModel.canShareLink ? { [weak self] in self?.viewModel.shareLink() } : nil
         let actions = AyahMenuUI.Actions(
             play: { [weak self] in self?.viewModel.play() },
             repeatVerses: { [weak self] in self?.viewModel.repeatVerses() },
@@ -72,7 +75,8 @@ final class AyahMenuViewController: UIViewController {
             showTranslation: { [weak self] in self?.viewModel.showTranslation() },
             copy: copy,
             share: share,
-            tag: tag
+            tag: tag,
+            shareLink: shareLink
         )
         #endif
         let highlightingColor = viewModel.highlightingColor

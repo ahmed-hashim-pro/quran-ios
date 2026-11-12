@@ -23,9 +23,11 @@ public enum AyahMenuUI {
             copy: AsyncAction?,
             share: AsyncAction?,
             showReadingBookmarkMenu: @escaping AsyncAction,
-            tag: AsyncAction? = nil
+            tag: AsyncAction? = nil,
+            shareLink: AsyncAction? = nil
         ) {
             self.tag = tag
+            self.shareLink = shareLink
             self.play = play
             self.repeatVerses = repeatVerses
             self.bookmark = bookmark
@@ -46,9 +48,11 @@ public enum AyahMenuUI {
             showTranslation: @escaping AsyncAction,
             copy: AsyncAction?,
             share: AsyncAction?,
-            tag: AsyncAction? = nil
+            tag: AsyncAction? = nil,
+            shareLink: AsyncAction? = nil
         ) {
             self.tag = tag
+            self.shareLink = shareLink
             self.play = play
             self.repeatVerses = repeatVerses
             self.highlight = highlight
@@ -75,6 +79,8 @@ public enum AyahMenuUI {
         /// Copy and Share come together, or neither when the page's reading is not the shareable Hafs text.
         let copy: AsyncAction?
         let share: AsyncAction?
+        /// Shown only when the host app has a link that opens the ayah.
+        let shareLink: AsyncAction?
         /// Shown only when the app tags bookmarks, as quran_android does.
         let tag: AsyncAction?
         #if QURAN_SYNC

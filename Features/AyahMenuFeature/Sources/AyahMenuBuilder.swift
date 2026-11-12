@@ -94,7 +94,8 @@ public struct AyahMenuBuilder {
             bookmarkedVerses: input.bookmarkedVerses,
             readingBookmark: input.readingBookmark,
             canTag: input.canTag,
-            canShareText: input.canShareText
+            canShareText: input.canShareText,
+            shareLink: input.canShareText ? input.verses.first.flatMap { container.ayahShareLink(for: $0) } : nil
         )
         #else
         let deps = AyahMenuViewModel.Deps(
@@ -105,7 +106,8 @@ public struct AyahMenuBuilder {
             notes: input.notes,
             noteService: container.noteService(),
             canTag: input.canTag,
-            canShareText: input.canShareText
+            canShareText: input.canShareText,
+            shareLink: input.canShareText ? input.verses.first.flatMap { container.ayahShareLink(for: $0) } : nil
         )
         #endif
         let viewModel = AyahMenuViewModel(deps: deps)

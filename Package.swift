@@ -607,6 +607,7 @@ private func featuresTargets() -> [[Target]] {
     return [
         target(type, name: "AppDependencies", hasTests: false, dependencies: [
             "CoreDataPersistence",
+            "QuranKit",
             "NotePersistence",
             "QuranTextKit",
             "Analytics",

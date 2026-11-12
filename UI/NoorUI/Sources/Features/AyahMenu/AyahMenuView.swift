@@ -229,6 +229,13 @@ private struct AyahMenuViewList: View {
                     Row(title: l("ayah.menu.share"), action: share) {
                         Image(systemName: "square.and.arrow.up")
                     }
+                    if let shareLink = dataObject.actions.shareLink {
+                        Divider()
+                            .padding(.leading)
+                        Row(title: lAndroid("share_ayah"), action: shareLink) {
+                            Image(systemName: "link")
+                        }
+                    }
                 }
             }
         }

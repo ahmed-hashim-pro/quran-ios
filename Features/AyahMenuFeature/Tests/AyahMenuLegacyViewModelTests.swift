@@ -1,6 +1,7 @@
 #if !QURAN_SYNC
 import AnalyticsFake
 import AnnotationsService
+import AppDependencies
 import Combine
 import QuranAnnotations
 import QuranKit
@@ -67,6 +68,41 @@ final class AyahMenuLegacyViewModelTests: XCTestCase {
         XCTAssertTrue(listener.shownErrors.isEmpty)
     }
 
+    func test_shareLink_sharesSurahAndAyahOverTheHostLink() throws {
+        let sut = makeSUT(verses: [AyahNumber(quran: .hafsMadani1405, sura: 2, ayah: 255)!], shareLink: hostLink)
+        let listener = ListenerSpy()
+        sut.listener = listener
+
+        XCTAssertTrue(sut.canShareLink)
+        sut.shareLink()
+
+        let shared = try XCTUnwrap(listener.sharedLines?.first)
+        XCTAssertTrue(shared.hasPrefix("Surah "))
+        XCTAssertTrue(shared.hasSuffix(": 255\nhttps://example.com/ayah/2/255"))
+    }
+
+    func test_shareLinkIsOffWithoutAHostLink() {
+        XCTAssertFalse(makeSUT().canShareLink)
+    }
+
+    func test_share_signsTheTextWithTheHostLink() async throws {
+        let originalQuranMode = QuranContentStatePreferences.shared.quranMode
+        defer { QuranContentStatePreferences.shared.quranMode = originalQuranMode }
+        QuranContentStatePreferences.shared.quranMode = .arabic
+        let sut = makeSUT(
+            verses: [AyahNumber(quran: .hafsMadani1405, sura: 1, ayah: 1)!],
+            quranFileURL: QuranResources.quranUthmaniV2Database,
+            shareLink: hostLink
+        )
+        let listener = ListenerSpy()
+        sut.listener = listener
+
+        await sut.share()
+
+        let shared = try XCTUnwrap(listener.sharedLines?.first)
+        XCTAssertTrue(shared.hasSuffix("Al-Fātihah, Ayah 1\n\n— via Host: https://example.com/ayah/2/255"))
+    }
+
     func test_share_showsErrorWhenVerseTextIsUnavailable() async {
         let sut = makeSUT()
         let listener = ListenerSpy()
@@ -97,7 +133,8 @@ final class AyahMenuLegacyViewModelTests: XCTestCase {
             AyahNumber(quran: .hafsMadani1405, sura: 2, ayah: 1)!,
         ],
         canTag: Bool = false,
-        quranFileURL: URL? = nil
+        quranFileURL: URL? = nil,
+        shareLink: AyahShareLink? = nil
     ) -> AyahMenuViewModel {
         let unavailableDatabase = URL(fileURLWithPath: "/tmp/unavailable-quran-database")
         return AyahMenuViewModel(deps: .init(
@@ -110,8 +147,13 @@ final class AyahMenuLegacyViewModelTests: XCTestCase {
             ),
             notes: [],
             noteService: NoteService(persistence: persistence, analytics: AnalyticsLibrarySpy()),
-            canTag: canTag
+            canTag: canTag,
+            shareLink: shareLink
         ))
+    }
+
+    private var hostLink: AyahShareLink {
+        AyahShareLink(url: URL(string: "https://example.com/ayah/2/255")!, signature: "— via Host: https://example.com/ayah/2/255")
     }
 }
 
