@@ -37,6 +37,12 @@ final class AyahMenuViewController: UIViewController {
 
         #if QURAN_SYNC
         let tag: AsyncAction? = viewModel.canTag ? { [weak self] in self?.viewModel.tag() } : nil
+        var copy: AsyncAction?
+        var share: AsyncAction?
+        if viewModel.canShareText {
+            copy = { [weak self] in await self?.viewModel.copy() }
+            share = { [weak self] in await self?.viewModel.share() }
+        }
         let actions = AyahMenuUI.Actions(
             play: { [weak self] in self?.viewModel.play() },
             repeatVerses: { [weak self] in self?.viewModel.repeatVerses() },
@@ -44,13 +50,19 @@ final class AyahMenuViewController: UIViewController {
             addNote: { [weak self] in await self?.viewModel.editNote() },
             deleteNote: { [weak self] in await self?.viewModel.deleteNotes() },
             showTranslation: { [weak self] in self?.viewModel.showTranslation() },
-            copy: { [weak self] in await self?.viewModel.copy() },
-            share: { [weak self] in await self?.viewModel.share() },
+            copy: copy,
+            share: share,
             showReadingBookmarkMenu: { [weak self] in self?.viewModel.showReadingBookmarkMenu() },
             tag: tag
         )
         #else
         let tag: AsyncAction? = viewModel.canTag ? { [weak self] in self?.viewModel.tag() } : nil
+        var copy: AsyncAction?
+        var share: AsyncAction?
+        if viewModel.canShareText {
+            copy = { [weak self] in await self?.viewModel.copy() }
+            share = { [weak self] in await self?.viewModel.share() }
+        }
         let actions = AyahMenuUI.Actions(
             play: { [weak self] in self?.viewModel.play() },
             repeatVerses: { [weak self] in self?.viewModel.repeatVerses() },
@@ -58,8 +70,8 @@ final class AyahMenuViewController: UIViewController {
             addNote: { [weak self] in await self?.viewModel.editNote() },
             deleteNote: { [weak self] in await self?.viewModel.deleteNotes() },
             showTranslation: { [weak self] in self?.viewModel.showTranslation() },
-            copy: { [weak self] in await self?.viewModel.copy() },
-            share: { [weak self] in await self?.viewModel.share() },
+            copy: copy,
+            share: share,
             tag: tag
         )
         #endif

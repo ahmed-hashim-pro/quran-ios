@@ -217,16 +217,18 @@ private struct AyahMenuViewList: View {
                 translation
             }
 
-            MenuGroup {
-                Divider()
+            if let copy = dataObject.actions.copy, let share = dataObject.actions.share {
+                MenuGroup {
+                    Divider()
 
-                Row(title: l("ayah.menu.copy"), action: dataObject.actions.copy) {
-                    Image(systemName: "doc.on.doc")
-                }
-                Divider()
-                    .padding(.leading)
-                Row(title: l("ayah.menu.share"), action: dataObject.actions.share) {
-                    Image(systemName: "square.and.arrow.up")
+                    Row(title: l("ayah.menu.copy"), action: copy) {
+                        Image(systemName: "doc.on.doc")
+                    }
+                    Divider()
+                        .padding(.leading)
+                    Row(title: l("ayah.menu.share"), action: share) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
                 }
             }
         }

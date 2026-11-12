@@ -52,6 +52,8 @@ public struct AyahMenuInput {
 
     /// Shows quran_android's Tag row, which the listener answers in `tagVerses(_:)`.
     public var canTag = false
+    /// Copy and Share read the Hafs text, so quran_android hides them on Warsh and Qaloon pages.
+    public var canShareText = true
 
     // MARK: Internal
 
@@ -91,7 +93,8 @@ public struct AyahMenuBuilder {
             highlightVerses: input.highlightVerses,
             bookmarkedVerses: input.bookmarkedVerses,
             readingBookmark: input.readingBookmark,
-            canTag: input.canTag
+            canTag: input.canTag,
+            canShareText: input.canShareText
         )
         #else
         let deps = AyahMenuViewModel.Deps(
@@ -101,7 +104,8 @@ public struct AyahMenuBuilder {
             textRetriever: textRetriever,
             notes: input.notes,
             noteService: container.noteService(),
-            canTag: input.canTag
+            canTag: input.canTag,
+            canShareText: input.canShareText
         )
         #endif
         let viewModel = AyahMenuViewModel(deps: deps)

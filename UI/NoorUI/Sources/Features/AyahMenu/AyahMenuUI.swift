@@ -20,8 +20,8 @@ public enum AyahMenuUI {
             addNote: @escaping AsyncAction,
             deleteNote: @escaping AsyncAction,
             showTranslation: @escaping AsyncAction,
-            copy: @escaping AsyncAction,
-            share: @escaping AsyncAction,
+            copy: AsyncAction?,
+            share: AsyncAction?,
             showReadingBookmarkMenu: @escaping AsyncAction,
             tag: AsyncAction? = nil
         ) {
@@ -44,8 +44,8 @@ public enum AyahMenuUI {
             addNote: @escaping AsyncAction,
             deleteNote: @escaping AsyncAction,
             showTranslation: @escaping AsyncAction,
-            copy: @escaping AsyncAction,
-            share: @escaping AsyncAction,
+            copy: AsyncAction?,
+            share: AsyncAction?,
             tag: AsyncAction? = nil
         ) {
             self.tag = tag
@@ -72,8 +72,9 @@ public enum AyahMenuUI {
         let addNote: AsyncAction
         let deleteNote: AsyncAction
         let showTranslation: AsyncAction
-        let copy: AsyncAction
-        let share: AsyncAction
+        /// Copy and Share come together, or neither when the page's reading is not the shareable Hafs text.
+        let copy: AsyncAction?
+        let share: AsyncAction?
         /// Shown only when the app tags bookmarks, as quran_android does.
         let tag: AsyncAction?
         #if QURAN_SYNC

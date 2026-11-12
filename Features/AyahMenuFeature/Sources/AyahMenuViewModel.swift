@@ -66,6 +66,7 @@ final class AyahMenuViewModel {
         let noteService: NoteService
         #endif
         var canTag = false
+        var canShareText = true
         let quranContentStatePreferences = QuranContentStatePreferences.shared
     }
 
@@ -242,6 +243,7 @@ final class AyahMenuViewModel {
     }
 
     var canTag: Bool { deps.canTag }
+    var canShareText: Bool { deps.canShareText }
 
     func tag() {
         logger.info("AyahMenu: tag. Verses: \(deps.verses.map(\.nonLocalizedDescription).joined(separator: ", "))")

@@ -456,6 +456,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         )
         #endif
         input.canTag = deps.tagAyah != nil
+        input.canShareText = ![.warsh, .qaloon].contains(readingPreferences.reading)
         let ayahMenuViewController = deps.ayahMenuBuilder.build(withListener: self, input: input)
         presenter?.presentAyahMenu(ayahMenuViewController, in: sourceView, at: point)
     }
