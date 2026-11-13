@@ -36,7 +36,7 @@ private extension TextPart {
         case .suras(let suras, let nameStyle):
             suras.enumerated().reduce(into: NSMutableAttributedString()) { result, element in
                 if element.offset > 0 {
-                    result.append(NSAttributedString(string: SuraNamesView.separator, attributes: [.font: size.plainUIFont]))
+                    result.append(NSAttributedString(string: locale.partSeparator, attributes: [.font: size.plainUIFont]))
                 }
                 result.append(QuranReference.sura(element.element, nameStyle: nameStyle).attributedString(size: size, locale: locale))
             }

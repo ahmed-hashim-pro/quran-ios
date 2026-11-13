@@ -65,7 +65,7 @@ final class MultipartTextQuranTests: XCTestCase {
     func test_ayahReference_inArabicLocale_usesGlyphAndLocalizedCoordinate() {
         let text: MultipartText = "\(ayah: ayah)"
 
-        XCTAssertEqual(text.rawValue(locale: arabic), "\u{E905} · ٢:٢٥٥")
+        XCTAssertEqual(text.rawValue(locale: arabic), "\u{E905}، ٢:٢٥٥")
     }
 
     @MainActor
@@ -137,7 +137,7 @@ final class MultipartTextQuranTests: XCTestCase {
         XCTAssertEqual(suraText.rawValue(locale: english), sura.localizedName())
         XCTAssertEqual(suraText.rawValue(locale: arabic), sura.localizedName(language: .arabic))
         XCTAssertEqual(ayahText.rawValue(locale: english), "\(sura.localizedName()) · 2:255")
-        XCTAssertEqual(ayahText.rawValue(locale: arabic), "\(sura.localizedName(language: .arabic)) · ٢:٢٥٥")
+        XCTAssertEqual(ayahText.rawValue(locale: arabic), "\(sura.localizedName(language: .arabic))، ٢:٢٥٥")
     }
 
     func test_indoPakTextReference_omitsAdditionalArabicName() {
@@ -189,7 +189,7 @@ final class MultipartTextQuranTests: XCTestCase {
     func test_decoratedAyahReference_inArabicLocale_usesGlyphAndLocalizedCoordinate() {
         let text: MultipartText = "\(ayah: ayah, nameStyle: .decorated)"
 
-        XCTAssertEqual(text.rawValue(locale: arabic), "\u{E905} · ٢:٢٥٥")
+        XCTAssertEqual(text.rawValue(locale: arabic), "\u{E905}، ٢:٢٥٥")
     }
 
     // MARK: Ranges
@@ -205,7 +205,7 @@ final class MultipartTextQuranTests: XCTestCase {
         let text: MultipartText = "\(ayahRange: ayah ... end)"
 
         XCTAssertEqual(text.rawValue(locale: english), "\(sura.localizedName()) · 2:255 - 2:256")
-        XCTAssertEqual(text.rawValue(locale: arabic), "\u{E905} · ٢:٢٥٥ - ٢:٢٥٦")
+        XCTAssertEqual(text.rawValue(locale: arabic), "\u{E905}، ٢:٢٥٥ - ٢:٢٥٦")
     }
 
     func test_crossSuraAyahRange_usesBothReferences() {
@@ -228,7 +228,7 @@ final class MultipartTextQuranTests: XCTestCase {
         )
         XCTAssertEqual(
             MultipartText.ayahRange(range, language: .arabic).rawValue(locale: arabic),
-            "\u{E905} · ٢:٢٥٥ - ٢:٢٥٦"
+            "\u{E905}، ٢:٢٥٥ - ٢:٢٥٦"
         )
         XCTAssertEqual(
             MultipartText.ayahRange(range, language: .chinese).rawValue(locale: chinese),
@@ -243,7 +243,7 @@ final class MultipartTextQuranTests: XCTestCase {
         XCTAssertEqual(text.rawValue(locale: english), "Al-Baqarah · 2:255 - 2:256; Āli-ʿImrān · 3:18")
         XCTAssertEqual(
             text.rawValue(locale: arabic),
-            "\u{E905} · ٢:٢٥٥ - ٢:٢٥٦\(l("list.separator"))\u{E906} · ٣:١٨"
+            "\u{E905}، ٢:٢٥٥ - ٢:٢٥٦\(l("list.separator"))\u{E906}، ٣:١٨"
         )
         XCTAssertEqual(text.accessibilityText, "Al-Baqarah, Ayah 255 - 2:256; Āli-ʿImrān, Ayah 18")
     }

@@ -39,11 +39,17 @@ final class ReadingModeTests: XCTestCase {
         XCTAssertEqual(ReadingMode(themeStyle: .quiet, isDark: false), .night)
     }
 
-    func test_aLightReaderIsSepiaOnPaperAndDayOnAnyOtherStyle() {
-        XCTAssertEqual(ReadingMode(themeStyle: .paper, isDark: false), .sepia)
-        for style in [ThemeStyle.original, .calm, .focus] {
+    func test_aLightReaderIsSepiaOnTheWarmPageAndDayOnAnyOtherStyle() {
+        XCTAssertEqual(ReadingMode(themeStyle: .calm, isDark: false), .sepia)
+        for style in [ThemeStyle.original, .paper, .focus] {
             XCTAssertEqual(ReadingMode(themeStyle: style, isDark: false), .day, "\(style)")
         }
+    }
+
+    func test_aFreshInstallInLightModeShowsDay() {
+        removeSavedTheme()
+
+        XCTAssertEqual(ReadingMode(themeStyle: theme.themeStyle, isDark: theme.userInterfaceStyle == .dark), .day)
     }
 
     // MARK: Chosen
@@ -58,23 +64,23 @@ final class ReadingModeTests: XCTestCase {
         XCTAssertEqual(theme.appearanceMode, .light)
     }
 
-    func test_sepiaTurnsTheReaderLightOnPaper() {
+    func test_sepiaTurnsTheReaderLightOnTheWarmPage() {
         theme.themeStyle = .original
         theme.appearanceMode = .dark
 
         ReadingMode.sepia.apply(to: theme)
 
-        XCTAssertEqual(theme.themeStyle, .paper)
+        XCTAssertEqual(theme.themeStyle, .calm)
         XCTAssertEqual(theme.appearanceMode, .light)
     }
 
-    func test_nightTurnsTheReaderDarkAndKeepsItsStyle() {
-        theme.themeStyle = .paper
+    func test_nightTurnsTheReaderDarkAndClearsSepia() {
+        theme.themeStyle = .calm
         theme.appearanceMode = .light
 
         ReadingMode.night.apply(to: theme)
 
-        XCTAssertEqual(theme.themeStyle, .paper)
+        XCTAssertEqual(theme.themeStyle, .original)
         XCTAssertEqual(theme.appearanceMode, .dark)
     }
 
@@ -104,8 +110,8 @@ final class ReadingModeTests: XCTestCase {
 
         sut.select(.sepia)
 
-        XCTAssertEqual(theme.themeStyle, .paper)
-        XCTAssertEqual(sut.themeStyle, .paper)
+        XCTAssertEqual(theme.themeStyle, .calm)
+        XCTAssertEqual(sut.themeStyle, .calm)
     }
 
     // MARK: Private
@@ -115,4 +121,11 @@ final class ReadingModeTests: XCTestCase {
     private var savedDefaults: [Any?] = []
     private var savedStyle = ThemeStyle.paper
     private var savedAppearance = AppearanceMode.auto
+
+    /// Back to the defaults through the service, then without the saved keys, as on a fresh install.
+    private func removeSavedTheme() {
+        theme.themeStyle = .paper
+        theme.appearanceMode = .light
+        keys.forEach { UserDefaults.standard.removeObject(forKey: $0) }
+    }
 }

@@ -56,7 +56,7 @@
 // The page subtitle when two pages show side by side: %1$@ and %2$@ are the first and last localized page numbers and %3$@ is the localized juz number, such as "Pages 2–3, Juz' 1". Translators may reorder the placeholders.
 "quran.pages.description" = "صفحات %1$@–%2$@، جزء %3$@";
 // The reader's subtitle with the print's name after it, as quran_android shows it: %1$@ is the page subtitle, such as "Page 2, Juz' 1", and %2$@ is the print, such as "Warsh".
-"quran.pages.description.print" = "%1$@ · %2$@";
+"quran.pages.description.print" = "%1$@، %2$@";
 
 // MARK: - Translation
 
@@ -493,7 +493,7 @@
 // Metadata: Translated by AI; human review required.
 "audio-manager.stream-hint" = "برای پخش بدون دانلود، «پخش جریانی صوت» را در «پخش صوت» روشن کنید.";
 // Subtitle of a reciter in Audio Downloads: %1$@ is the downloaded size, such as "1.2GB", and %2$@ is the downloaded surahs count, such as "5 surahs downloaded". Translators may reorder the placeholders.
-"audio.downloads.size-and-files" = "%1$@ · %2$@";
+"audio.downloads.size-and-files" = "%1$@، %2$@";
 // Metadata: Translated by ChatGPT; human review required.
 "audio.verse-delay" = "مکث پس از هر آیه";
 // Metadata: Translated by ChatGPT; human review required.

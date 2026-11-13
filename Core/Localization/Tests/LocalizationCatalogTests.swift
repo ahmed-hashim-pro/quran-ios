@@ -117,14 +117,17 @@ final class LocalizationCatalogTests: XCTestCase {
         }
     }
 
-    func testAudioDownloadSubtitleUsesTheMetadataSeparator() throws {
+    func testMetadataSeparatorsAreEachLocalizationsPartSeparator() throws {
         for localization in supportedLocalizations {
             let localized = try strings(for: localization)
+            let separator = Locale(identifier: localization).partSeparator
             // Translators may reorder the placeholders, so only check the separator is there.
-            XCTAssertTrue(
-                localized["audio.downloads.size-and-files", default: ""].contains(" · "),
-                "\(localization) audio.downloads.size-and-files is missing \" · \""
-            )
+            for key in ["audio.downloads.size-and-files", "quran.pages.description.print"] {
+                XCTAssertTrue(
+                    localized[key, default: ""].contains(separator),
+                    "\(localization) \(key) is missing \"\(separator)\""
+                )
+            }
         }
     }
 

@@ -28,7 +28,8 @@ enum ReadingMode: CaseIterable {
     // MARK: Internal
 
     static let dayStyle = ThemeStyle.original
-    static let sepiaStyle = ThemeStyle.paper
+    /// The warm page, like Android's sepia.
+    static let sepiaStyle = ThemeStyle.calm
 
     var title: String {
         switch self {
@@ -38,7 +39,7 @@ enum ReadingMode: CaseIterable {
         }
     }
 
-    /// Night keeps the style, so the page is that style's dark variant.
+    /// Like Android's, Night clears sepia, so a warm page never turns brown at night.
     @MainActor
     func apply(to themeService: ThemeService) {
         switch self {
@@ -49,6 +50,7 @@ enum ReadingMode: CaseIterable {
             themeService.themeStyle = Self.sepiaStyle
             themeService.appearanceMode = .light
         case .night:
+            themeService.themeStyle = Self.dayStyle
             themeService.appearanceMode = .dark
         }
     }

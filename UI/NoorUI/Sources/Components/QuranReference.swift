@@ -82,7 +82,7 @@ enum QuranReference {
 
         let suraReference = components.joined(separator: " ")
         if let coordinate = coordinate(locale: locale) {
-            return "\(suraReference) · \(coordinate)"
+            return suraReference + locale.partSeparator + coordinate
         }
         return suraReference
     }
@@ -117,7 +117,7 @@ enum QuranReference {
 
         if let coordinate = coordinate(locale: locale) {
             result.append(NSAttributedString(
-                string: " · \(coordinate)",
+                string: locale.partSeparator + coordinate,
                 attributes: [.font: size.plainUIFont]
             ))
         }
@@ -244,8 +244,14 @@ struct QuranReferenceView: View {
             }
 
             if let coordinate = reference.coordinate(locale: locale) {
-                Text("·")
-                    .font(size.plainFont)
+                if locale.usesArabicComma {
+                    Text("،")
+                        .font(size.plainFont)
+                        .padding(.leading, -spacing)
+                } else {
+                    Text("·")
+                        .font(size.plainFont)
+                }
                 Text(coordinate)
                     .font(size.plainFont)
                     .environment(\.layoutDirection, .leftToRight)
@@ -299,11 +305,9 @@ private struct IgnoringSpacingLayout: Layout {
     }
 }
 
-/// Sura names separated by " · " on one line.
+/// Sura names separated by the locale's part separator on one line.
 struct SuraNamesView: View {
     // MARK: Internal
-
-    static let separator = " · "
 
     let suras: [Sura]
     let nameStyle: SuraNameStyle
@@ -315,14 +319,14 @@ struct SuraNamesView: View {
             HStack(spacing: 0) {
                 ForEach(Array(references.enumerated()), id: \.offset) { index, reference in
                     if index > 0 {
-                        Text(Self.separator)
+                        Text(locale.partSeparator)
                             .font(size.plainFont)
                     }
                     QuranReferenceView(reference: reference, size: size)
                 }
             }
         } else {
-            Text(references.compactMap { $0.localizedName(locale: locale) }.joined(separator: Self.separator))
+            Text(references.compactMap { $0.localizedName(locale: locale) }.joined(separator: locale.partSeparator))
                 .font(size.plainFont)
         }
     }

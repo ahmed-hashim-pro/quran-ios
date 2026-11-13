@@ -177,7 +177,7 @@ private struct NoteEditorContent: View {
             return wordsCount
         }
 
-        return Text(lFormat("notes.editor.edited", note.editedSince)) + Text(" · ") + wordsCount
+        return Text(lFormat("notes.editor.edited", note.editedSince)) + Text(Locale.preferredLanguageLocale.partSeparator) + wordsCount
     }
 
     private var thinDivider: some View {

@@ -43,7 +43,7 @@ final class PagesDescriptionTests: XCTestCase {
         )
         XCTAssertEqual(
             withoutBidiIsolates(page.localizedDescription(printName: Reading.warsh.printName(language: .arabic), language: .arabic)),
-            "صفحة 2، جزء 1 · ورش"
+            "صفحة 2، جزء 1، ورش"
         )
     }
 

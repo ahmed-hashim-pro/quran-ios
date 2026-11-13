@@ -28,7 +28,7 @@ public struct AudioOptionsSummary: Equatable {
         if rangeRuns != .finite(1) {
             parts.append(String(format: l("audio.summary.range"), count(rangeRuns)))
         }
-        return parts.joined(separator: " · ")
+        return parts.joined(separator: Locale.preferredLanguageLocale.partSeparator)
     }
 
     private func count(_ runs: Runs) -> String {

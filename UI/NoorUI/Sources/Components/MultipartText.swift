@@ -167,7 +167,7 @@ enum TextPart {
             QuranReference.ayah(ayah, nameStyle: nameStyle).rawValue(locale: locale)
         case .suras(let suras, let nameStyle):
             suras.map { QuranReference.sura($0, nameStyle: nameStyle).rawValue(locale: locale) }
-                .joined(separator: SuraNamesView.separator)
+                .joined(separator: locale.partSeparator)
         case .ayahCoordinate(let ayah):
             ayah.localizedCoordinate(locale: locale)
         case .quran(let text, _, _, _, _):
@@ -183,7 +183,7 @@ enum TextPart {
         }
         return suras.enumerated().flatMap { index, sura -> [TextPart] in
             let reference = TextPart.sura(sura, emphasizesSura: false, nameStyle: nameStyle)
-            return index == 0 ? [reference] : [.plain(text: SuraNamesView.separator), reference]
+            return index == 0 ? [reference] : [.plain(text: Locale.preferredLanguageLocale.partSeparator), reference]
         }
     }
 
@@ -221,7 +221,7 @@ public struct MultipartText: ExpressibleByStringInterpolation {
             parts.append(.sura(sura, emphasizesSura: emphasizingSura, nameStyle: nameStyle))
         }
 
-        /// Appends the sura names separated by " · ". Wrapped lines break only between suras; a one-line
+        /// Appends the sura names separated by the part separator, " · " or the Arabic comma. Wrapped lines break only between suras; a one-line
         /// view truncates the last name when no Arabic name shows.
         public mutating func appendInterpolation(suras: [Sura], nameStyle: SuraNameStyle = .standard) {
             parts.append(.suras(suras, nameStyle: nameStyle))

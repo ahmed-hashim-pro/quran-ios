@@ -53,7 +53,8 @@ extension PlaybackStart {
         switch self {
         case .lastRange(let range):
             let verses: MultipartText = "\(ayahRange: range.start ... range.end)"
-            return range.hasRepeats ? "\(verses) · \(lAndroid("playback_prompt_repeat_suffix"))" : verses
+            let separator = Locale.preferredLanguageLocale.partSeparator
+            return range.hasRepeats ? "\(verses)\(separator)\(lAndroid("playback_prompt_repeat_suffix"))" : verses
         case .page(let page):
             return .text(lFormat("playback_prompt_page_sub", table: .android, NumberFormatter.shared.format(page.pageNumber)))
         case .sura:

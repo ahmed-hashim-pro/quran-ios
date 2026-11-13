@@ -50,20 +50,20 @@ final class MultipartTextLocalizationTests: XCTestCase {
     func test_surasInterpolation_inArabicLocale_usesDecoratedGlyphs() {
         let text: MultipartText = "\(suras: suras)"
 
-        XCTAssertEqual(text.rawValue(locale: arabic), "\u{E916} · \u{E917}")
+        XCTAssertEqual(text.rawValue(locale: arabic), "\u{E916}، \u{E917}")
     }
 
     func test_decoratedSurasInterpolation_addsDecoratedGlyphs() {
         let text: MultipartText = "\(suras: suras, nameStyle: .decorated)"
 
         XCTAssertEqual(text.rawValue(locale: english), "Al-Isrāʾ \u{E916} · Al-Kahf \u{E917}")
-        XCTAssertEqual(text.rawValue(locale: arabic), "\u{E916} · \u{E917}")
+        XCTAssertEqual(text.rawValue(locale: arabic), "\u{E916}، \u{E917}")
     }
 
     func test_textSurasInterpolation_inArabicLocale_usesPlainArabicNames() {
         let text: MultipartText = "\(suras: suras, nameStyle: .text)"
 
-        XCTAssertEqual(text.rawValue(locale: arabic), "الإِسۡرَاءِ · الكَهۡفِ")
+        XCTAssertEqual(text.rawValue(locale: arabic), "الإِسۡرَاءِ، الكَهۡفِ")
     }
 
     private let suras = Quran.hafsMadani1405.pages[292].suras
