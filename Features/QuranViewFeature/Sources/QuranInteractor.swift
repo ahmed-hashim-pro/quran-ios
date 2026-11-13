@@ -79,6 +79,7 @@ protocol QuranPresentable: UIViewController {
     func presentWordPointer(_ viewController: UIViewController)
     func presentQuranContent(_ viewController: ContentViewController)
     func presentTranslationStrip(_ viewController: UIViewController)
+    func presentReadingModeBar(_ viewController: UIViewController)
     func presentTranslationsSelection(_ viewController: UIViewController)
     func presentGoTo(_ viewController: UIViewController)
     func presentAudioManager(_ viewController: UIViewController)
@@ -119,6 +120,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         var tagAyah: QuranAyahTagger?
         var choosePrint: QuranPrintChooser?
         var openAdvancedOptions: QuranAdvancedOptionsOpener?
+        var openHelp: QuranAdvancedOptionsOpener?
         var audioDownloadsBuilder: AudioDownloadsBuilder?
         var searchBuilder: SearchBuilder?
         var localTranslationsRetriever: LocalTranslationsRetriever?
@@ -241,6 +243,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         state.translationsSelection = .alwaysOn
         state.focusMode = .alwaysOn
         state.advancedOptions = deps.openAdvancedOptions == nil ? .alwaysOff : .alwaysOn
+        state.help = deps.openHelp == nil ? .alwaysOff : .alwaysOn
         let model = MoreMenuModel(isWordPointerActive: isWordPointerActive, isFocusModeActive: isFocusModeOn, state: state)
         let viewController = deps.moreMenuBuilder.build(withListener: self, model: model)
         presenter?.presentMoreMenu(viewController)
@@ -290,6 +293,18 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
         presenter?.dismissPresentedViewController { [weak self] in
             if let presenter = self?.presenter {
                 openAdvancedOptions(presenter)
+            }
+        }
+    }
+
+    func onHelpTapped() {
+        guard let openHelp = deps.openHelp else {
+            return
+        }
+        logger.info("Quran: help tapped")
+        presenter?.dismissPresentedViewController { [weak self] in
+            if let presenter = self?.presenter {
+                openHelp(presenter)
             }
         }
     }
@@ -345,6 +360,15 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
     func onGoToTapped() {
         presenter?.dismissPresentedViewController { [weak self] in
             self?.presentGoTo()
+        }
+    }
+
+    /// Turns to a link's target, as quran_android's forwarder does, once whatever the reader shows is closed.
+    func navigate(to target: QuranGoToTarget) {
+        logger.info("Quran: navigate to \(target)")
+        contentViewModel?.removeAyahMenuHighlight()
+        presenter?.dismissPresentedViewController { [weak self] in
+            self?.goTo(target)
         }
     }
 
@@ -658,6 +682,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
     private let input: QuranInput
     private var audioBanner: AudioBannerViewModel?
     private var hasTranslationStrip = false
+    private var hasReadingModeBar = false
     /// The content loads again when its resources do, which must not play again.
     private var didPlayOnOpen = false
     private var cancellables: Set<AnyCancellable> = []
@@ -714,6 +739,7 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
 
         (contentViewController, contentViewModel) = presentQuranContent(with: input)
         presentTranslationStripIfNeeded()
+        presentReadingModeBarIfNeeded()
         presenter?.startHiddenBarsTimer()
         restoreWordPointerIfNeeded()
     }
@@ -727,6 +753,14 @@ final class QuranInteractor: WordPointerListener, ContentListener, NoteEditorLis
             self?.presentTranslationsSelection()
         }
         presenter?.presentTranslationStrip(strip)
+    }
+
+    private func presentReadingModeBarIfNeeded() {
+        guard !hasReadingModeBar else {
+            return
+        }
+        hasReadingModeBar = true
+        presenter?.presentReadingModeBar(ReadingModeBarBuilder.build())
     }
 
     private func restoreWordPointerIfNeeded() {

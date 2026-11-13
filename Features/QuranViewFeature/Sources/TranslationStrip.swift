@@ -42,7 +42,7 @@ struct TranslationStrip: View {
                 .font(.footnote.weight(.semibold))
                 .padding(.horizontal)
                 .frame(minHeight: minimumTapLength)
-                .stripBackground()
+                .readerChromeBackground()
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .ignore)
@@ -68,7 +68,7 @@ struct TranslationStrip: View {
                 .disabled(!viewModel.canIncreaseFontSize)
             }
             .buttonStyle(.plain)
-            .stripBackground()
+            .readerChromeBackground()
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(l("menu.translationFontSize"))
             .accessibilityAdjustableAction { direction in
@@ -86,15 +86,4 @@ struct TranslationStrip: View {
     // MARK: Private
 
     @ScaledMetric private var minimumTapLength = 44.0
-}
-
-private extension View {
-    @ViewBuilder
-    func stripBackground() -> some View {
-        if #available(iOS 26.1, *) {
-            glassEffect(in: .capsule)
-        } else {
-            background(.thinMaterial, in: Capsule())
-        }
-    }
 }

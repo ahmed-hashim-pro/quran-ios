@@ -1,7 +1,9 @@
 import AdvancedAudioOptionsFeature
+import Localization
 import QueuePlayer
 import QuranAudio
 import QuranKit
+import QuranLocalization
 import ReciterService
 import ReciterServiceFake
 import XCTest
@@ -41,6 +43,37 @@ final class AudioBannerViewModelTests: XCTestCase {
         sut.viewModel.cycleRepeatFromBanner()
         XCTAssertEqual(sut.viewModel.audioOptionsSummary.verseRuns, .finite(2))
         XCTAssertEqual(AudioPreferences.shared.verseRuns, .finite(1))
+    }
+
+    // MARK: - Now Playing
+
+    func test_playingAnAyah_namesItsSurahAndNumber() async throws {
+        AudioPreferences.shared.streamingEnabled = true
+        let sut = await AudioBannerHarness(pages: [midSuraPage])
+        sut.viewModel.playFromBanner()
+        try await eventually { sut.bannerState == .playing }
+
+        sut.player.reach(file: 1, frame: 0)
+
+        let ayah = midSuraPage.firstVerse.next!
+        XCTAssertEqual(
+            sut.viewModel.nowPlaying?.accessibilityText,
+            lFormat("audiobar_now_playing", table: .android, ayah.sura.localizedName(), NumberFormatter.shared.format(ayah.ayah))
+        )
+    }
+
+    func test_stopping_clearsTheSurahAndAyah() async throws {
+        AudioPreferences.shared.streamingEnabled = true
+        let sut = await AudioBannerHarness(pages: [midSuraPage])
+        sut.viewModel.playFromBanner()
+        try await eventually { sut.bannerState == .playing }
+        sut.player.reach(file: 0, frame: 0)
+        XCTAssertNotNil(sut.viewModel.nowPlaying)
+
+        sut.viewModel.stopFromBanner()
+
+        XCTAssertNil(sut.viewModel.nowPlaying)
+        XCTAssertEqual(sut.bannerState, .readyToPlay)
     }
 
     // MARK: - Where to Start

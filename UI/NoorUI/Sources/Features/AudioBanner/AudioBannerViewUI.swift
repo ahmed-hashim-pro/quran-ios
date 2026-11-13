@@ -11,7 +11,8 @@ import UIKit
 import UIx
 
 public enum AudioBannerState {
-    case playing(paused: Bool, rate: Float, reciter: String)
+    /// `nowPlaying` names the surah and ayah being recited, once the player reports one.
+    case playing(paused: Bool, rate: Float, reciter: String, nowPlaying: MultipartText? = nil)
     case readyToPlay(reciter: String)
     case downloading(progress: Double)
     /// Asking before downloading off Wi-Fi.
@@ -79,9 +80,9 @@ public struct AudioBannerViewUI: View {
     public var body: some View {
         ZStack {
             switch state {
-            case .playing(let paused, let rate, let reciter):
+            case .playing(let paused, let rate, let reciter, let nowPlaying):
                 VStack(spacing: 0) {
-                    PlayingReciter(reciter: reciter, action: actions.reciters)
+                    PlayingDeck(reciter: reciter, nowPlaying: nowPlaying, action: actions.reciters)
                     AudioPlaying(paused: paused, currentRate: rate, actions: actions, options: options)
                 }
             case .readyToPlay(let reciter):
@@ -267,31 +268,6 @@ private struct AudioPlaying: View {
     }
 }
 
-/// quran_android's playing bar names the reciter above its controls, and a tap picks another.
-private struct PlayingReciter: View {
-    let reciter: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                NoorSystemImage.reciter.image
-                Text(reciter)
-                    .lineLimit(1)
-                Image(systemName: "chevron.up.chevron.down")
-                    .imageScale(.small)
-            }
-            .font(.footnote)
-            .frame(maxWidth: .infinity, minHeight: AudioControlMetrics.minimumTapLength)
-            .contentShape(Rectangle())
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(l("audio.reciter"))
-        .accessibilityValue(reciter)
-        .accessibilityAddTraits(.isButton)
-    }
-}
-
 private struct ReadyToPlay: View {
     let reciter: String
     let actions: AudioBannerActions
@@ -422,132 +398,4 @@ private extension View {
             background(BannerBackground(color: .clear))
         }
     }
-}
-
-#Preview("Compact Playing") {
-    let actions = AudioBannerActions(
-        play: {},
-        pause: {},
-        resume: {},
-        stop: {},
-        backward: {},
-        forward: {},
-        cycleRepeat: {},
-        cancelDownloading: {},
-        acceptDownload: {},
-        declineDownload: {},
-        reciters: {},
-        more: {},
-        setPlaybackRate: { _ in }
-    )
-    AudioBannerViewUI(
-        state: .playing(paused: false, rate: 1, reciter: "Mishary Al-afasy"),
-        actions: actions,
-        options: .init()
-    )
-    .frame(width: 300)
-    .background(Color.systemGroupedBackground)
-}
-
-#Preview {
-    struct PreviewView: View {
-        let actions = AudioBannerActions(
-            play: {},
-            pause: {},
-            resume: {},
-            stop: {},
-            backward: {},
-            forward: {},
-            cycleRepeat: {},
-            cancelDownloading: {},
-            acceptDownload: {},
-            declineDownload: {},
-            reciters: {},
-            more: {},
-            setPlaybackRate: { _ in }
-        )
-
-        let readyToPlay = AudioBannerState.readyToPlay(reciter: "Mishary Al-afasy")
-        let playing = AudioBannerState.playing(paused: false, rate: 1.0, reciter: "Mishary Al-afasy")
-        let downloading = AudioBannerState.downloading(progress: 0.7)
-        var state: AudioBannerState {
-            switch counter % 3 {
-            case 0: readyToPlay
-            case 1: playing
-            default: downloading
-            }
-        }
-
-        @State var counter: Int = 1
-
-        var body: some View {
-            VStack {
-                Spacer()
-                Button {
-                    counter += 1
-                } label: {
-                    Text("Rotate")
-                }
-                Spacer()
-                Group {
-                    AudioBannerViewUI(state: state, actions: actions, options: .init())
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .background(Color.systemGroupedBackground)
-        }
-    }
-
-    return PreviewView()
-}
-
-#Preview("Audio option indicators") {
-    let actions = AudioBannerActions(
-        play: {}, pause: {}, resume: {}, stop: {}, backward: {}, forward: {}, cycleRepeat: {},
-        cancelDownloading: {}, acceptDownload: {}, declineDownload: {}, reciters: {}, more: {}, setPlaybackRate: { _ in }
-    )
-    ScrollView {
-        VStack {
-            AudioBannerViewUI(state: .confirmingDownload, actions: actions, options: .init())
-            AudioBannerViewUI(state: .downloading(progress: 0.3), actions: actions, options: .init())
-            AudioBannerViewUI(state: .downloading(progress: 0.3), actions: actions, options: .init(rate: 0.5))
-            AudioBannerViewUI(state: .readyToPlay(reciter: "Mishary Al-afasy"), actions: actions, options: .init())
-            AudioBannerViewUI(
-                state: .readyToPlay(reciter: "Mishary Al-afasy"), actions: actions,
-                options: .init(rate: 0.5, verseRuns: .finite(3), rangeRuns: .finite(2))
-            )
-            AudioBannerViewUI(
-                state: .playing(paused: false, rate: 0.5, reciter: "Mishary Al-afasy"), actions: actions,
-                options: .init(rate: 0.5, verseRuns: .finite(3), rangeRuns: .finite(2))
-            )
-            AudioBannerViewUI(
-                state: .playing(paused: true, rate: 1, reciter: "Mishary Al-afasy"), actions: actions,
-                options: .init(rangeRuns: .indefinite)
-            )
-            AudioBannerViewUI(
-                state: .playing(paused: true, rate: 1, reciter: "Mishary Al-afasy"), actions: actions,
-                options: .init()
-            )
-            AudioBannerViewUI(
-                state: .readyToPlay(reciter: "مشاري العفاسي"), actions: actions,
-                options: .init()
-            )
-            .environment(\.layoutDirection, .rightToLeft)
-            .dynamicTypeSize(.xxLarge)
-            AudioBannerViewUI(
-                state: .readyToPlay(reciter: "مشاري العفاسي"), actions: actions,
-                options: .init(rate: 0.5, verseRuns: .finite(3), rangeRuns: .finite(2))
-            )
-            .environment(\.layoutDirection, .rightToLeft)
-            .dynamicTypeSize(.xxLarge)
-            AudioBannerViewUI(
-                state: .readyToPlay(reciter: "مشاري العفاسي"), actions: actions,
-                options: .init(rate: 0.5, verseRuns: .finite(3), rangeRuns: .finite(2))
-            )
-            .environment(\.layoutDirection, .rightToLeft)
-            .dynamicTypeSize(.accessibility1)
-        }
-        .padding(.vertical)
-    }
-    .background(Color.systemGroupedBackground)
 }

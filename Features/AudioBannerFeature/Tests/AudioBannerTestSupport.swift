@@ -1,5 +1,6 @@
 import AdvancedAudioOptionsFeature
 import AnalyticsFake
+import AVFoundation
 import BatchDownloaderFake
 import Foundation
 import QuranAudio
@@ -52,7 +53,7 @@ final class AudioBannerHarness {
 
     var bannerState: BannerStateSummary {
         switch viewModel.audioBannerState {
-        case .playing(let paused, _, _): paused ? .paused : .playing
+        case .playing(let paused, _, _, _): paused ? .paused : .playing
         case .readyToPlay: .readyToPlay
         case .downloading: .downloading
         case .confirmingDownload: .confirmingDownload
@@ -102,6 +103,11 @@ final class QueuingPlayerFake: QueuingPlayer {
     func stop() {
         request = nil
         actions?.playbackEnded()
+    }
+
+    /// Reports the frame as the real player does when it reaches it.
+    func reach(file: Int, frame: Int) {
+        actions?.audioFrameChanged(file, frame, AVPlayerItem(url: URL(fileURLWithPath: "/dev/null")), nil)
     }
 
     func stepForward() {}

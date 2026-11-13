@@ -31,6 +31,7 @@
 "audio_manager_surah_download" = "تحميل السورة";
 "audio_updated_text" = "تم تحديث عدد من الملفات الصوتية. تطبيق قرآن حذف نسختك القديمة من هذه الملفات لتتمكن من تنزيل النسخ الجديدة عند تشغيلك لهذه الملفات في المرة القادمة.";
 "audio_updated_title" = "تحديث الملفات الصوتية";
+"audiobar_now_playing" = "%1$@، الآية %2$@";
 "available_translations" = "الملفات المتاحة للتحميل";
 "ayah_copied_popup" = "تم نسخ الآية";
 "bookmark_ayah" = "أضف الآية إلى المرجعيات";
@@ -258,6 +259,9 @@
 "reading_bookmark_movable_education_title" = "هذه علامة قراءة قابلة للنقل";
 "reading_bookmark_moved_from" = "نُقلت من %1$@";
 "reading_bookmark_moved_from_title" = "نُقلت العلامة من %1$@";
+"reading_mode_day" = "نهار";
+"reading_mode_night" = "ليل";
+"reading_mode_sepia" = "ورقي";
 "recent_pages" = "آخر المتصفحات";
 "recite_from_here" = "اقرأ من هنا";
 "remove_button" = "احذف";

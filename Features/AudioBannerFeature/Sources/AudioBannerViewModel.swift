@@ -133,12 +133,16 @@ public final class AudioBannerViewModel: ObservableObject {
 
     var audioBannerState: AudioBannerState {
         switch playingState {
-        case .playing: .playing(paused: false, rate: playbackRate, reciter: selectedReciter?.localizedName ?? "")
-        case .paused: .playing(paused: true, rate: playbackRate, reciter: selectedReciter?.localizedName ?? "")
+        case .playing: .playing(paused: false, rate: playbackRate, reciter: selectedReciter?.localizedName ?? "", nowPlaying: nowPlaying)
+        case .paused: .playing(paused: true, rate: playbackRate, reciter: selectedReciter?.localizedName ?? "", nowPlaying: nowPlaying)
         case .stopped: .readyToPlay(reciter: selectedReciter?.localizedName ?? "")
         case .downloading(let progress): .downloading(progress: progress)
         case .confirmingDownload: .confirmingDownload
         }
+    }
+
+    var nowPlaying: MultipartText? {
+        playingAyah.map(AudioBarNowPlaying.text(for:))
     }
 
     func start() async {
@@ -183,7 +187,7 @@ public final class AudioBannerViewModel: ObservableObject {
     private var audioRange: AudioRange?
     /// May differ from the selected reciter: quran_android's bar takes a new reciter for the next play.
     private var playingReciter: Reciter?
-    private var playingAyah: AyahNumber?
+    @Published private var playingAyah: AyahNumber?
 
     private let analytics: AnalyticsLibrary
     private let reciterRetreiver: ReciterDataRetriever

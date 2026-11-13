@@ -215,6 +215,12 @@ class QuranViewController: BaseViewController, QuranViewDelegate,
         viewController.didMove(toParent: self)
     }
 
+    func presentReadingModeBar(_ viewController: UIViewController) {
+        addChild(viewController)
+        quranView?.addReadingModeBarView(viewController.view)
+        viewController.didMove(toParent: self)
+    }
+
     // MARK: - View Controllable
 
     func shareText(_ lines: [String], in sourceView: UIView, at point: CGPoint, completion: @escaping () -> Void) {

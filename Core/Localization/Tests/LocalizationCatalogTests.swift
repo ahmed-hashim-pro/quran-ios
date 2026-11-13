@@ -64,6 +64,13 @@ final class LocalizationCatalogTests: XCTestCase {
         }
     }
 
+    func testArabicNowPlayingSeparatesWithTheArabicComma() throws {
+        // Beside Arabic-Indic digits a middle dot reads as a zero.
+        let nowPlaying = try strings(named: "Android", for: "ar")["audiobar_now_playing", default: ""]
+        XCTAssertTrue(nowPlaying.contains("،"))
+        XCTAssertFalse(nowPlaying.contains("·"))
+    }
+
     func testReferenceFormatsUseEachLocalizationsComma() throws {
         let commas = [
             "ar": "، ",
@@ -157,6 +164,7 @@ final class LocalizationCatalogTests: XCTestCase {
 
     /// Android strings iOS uses that Android lacks in some languages, which show English instead.
     private let englishAndArabicAndroidKeys: Set<String> = [
+        "audiobar_now_playing",
         "download_non_wifi_prompt",
         "focus_mode",
         "focus_mode_off",
@@ -166,6 +174,9 @@ final class LocalizationCatalogTests: XCTestCase {
         "playback_prompt_reciter",
         "playback_prompt_repeat_suffix",
         "playback_prompt_sura_sub",
+        "reading_mode_day",
+        "reading_mode_night",
+        "reading_mode_sepia",
     ]
 
     private let englishFallbackKeys: Set<String> = [

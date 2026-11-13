@@ -35,6 +35,7 @@
 your copy of these files so that the newest versions can be downloaded the next time you play them\
 back.";
 "audio_updated_title" = "Quran Audio files Update";
+"audiobar_now_playing" = "%1$@ · ayah %2$@";
 "available_translations" = "Available for download";
 "ayah_copied_popup" = "Ayah Copied";
 "bookmark_ayah" = "Bookmark this Ayah";
@@ -294,6 +295,9 @@ sure you want to use the external SD card?";
 "reading_bookmark_movable_education_title" = "This is a movable reading bookmark";
 "reading_bookmark_moved_from" = "Moved from %1$@";
 "reading_bookmark_moved_from_title" = "Bookmark moved from %1$@";
+"reading_mode_day" = "Day";
+"reading_mode_night" = "Night";
+"reading_mode_sepia" = "Sepia";
 "recent_pages" = "Recent pages";
 "recite_from_here" = "Recite from here";
 "remove_button" = "Remove";

@@ -21,6 +21,17 @@ final class AudioBannerLayoutTests: XCTestCase {
         }
     }
 
+    func test_playingWithTheSurahAndAyah_settles() {
+        guard #available(iOS 17.0, *) else { return }
+        let nowPlaying: MultipartText = "Al-Baqarah · ayah 255"
+        for size in contentSizes {
+            assertSettles(
+                .playing(paused: false, rate: 1.25, reciter: "Abdul Basit Abdul Samad (Mujawwad)", nowPlaying: nowPlaying),
+                at: size
+            )
+        }
+    }
+
     func test_confirmingADownload_settles() {
         guard #available(iOS 17.0, *) else { return }
         for size in contentSizes {

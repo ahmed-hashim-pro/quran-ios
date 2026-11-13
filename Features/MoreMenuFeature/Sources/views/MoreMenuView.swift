@@ -210,6 +210,20 @@ private struct MoreMenuRootView: View {
                                 : nil
                         )
                     }
+
+                    viewBasedOn(state.help) {
+                        if state.theme != .alwaysOff {
+                            empty
+                        }
+                        Button {
+                            store.openHelp()
+                        } label: {
+                            MoreMenuHelp()
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(BackgroundHighlightingStyle())
+                        .background(Color.systemBackground)
+                    }
                 }
             }
         }

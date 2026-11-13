@@ -38,26 +38,37 @@ public typealias QuranAyahTagger = @MainActor (_ ayah: AyahNumber, _ presenter: 
 /// Lets the user pick another print, presenting from `presenter`; `page` is the one being read.
 public typealias QuranPrintChooser = @MainActor (_ page: Page, _ presenter: UIViewController) -> Void
 
-/// Opens the app's own import and export of bookmarks, quran_android's Advanced Options, from `presenter`.
+/// Opens one of the app's own screens from `presenter`, such as quran_android's Advanced Options (the import
+/// and export of bookmarks) or its Help.
 public typealias QuranAdvancedOptionsOpener = @MainActor (_ presenter: UIViewController) -> Void
+
+/// The reader `QuranBuilder` builds, turned to a page or an ayah while it is open, as quran_android opens a
+/// link's target. It closes whatever it presents first, and highlights an ayah as it does one it opens on.
+@MainActor
+public protocol QuranReaderNavigating: AnyObject {
+    func navigate(to page: Page)
+    func navigate(to ayah: AyahNumber)
+}
 
 @MainActor
 public struct QuranBuilder {
     // MARK: Lifecycle
 
     /// The ayah menu offers quran_android's Tag only when `tagAyah` is given, the More menu a print
-    /// choice only when `choosePrint` is, and the reader's settings Advanced Options only when
-    /// `openAdvancedOptions` is.
+    /// choice only when `choosePrint` is, the reader's settings Advanced Options only when
+    /// `openAdvancedOptions` is, and the More menu Help only when `openHelp` is.
     public init(
         container: AppDependencies,
         tagAyah: QuranAyahTagger? = nil,
         choosePrint: QuranPrintChooser? = nil,
-        openAdvancedOptions: QuranAdvancedOptionsOpener? = nil
+        openAdvancedOptions: QuranAdvancedOptionsOpener? = nil,
+        openHelp: QuranAdvancedOptionsOpener? = nil
     ) {
         self.container = container
         self.tagAyah = tagAyah
         self.choosePrint = choosePrint
         self.openAdvancedOptions = openAdvancedOptions
+        self.openHelp = openHelp
     }
 
     // MARK: Public
@@ -123,6 +134,7 @@ public struct QuranBuilder {
         interactorDeps.tagAyah = tagAyah
         interactorDeps.choosePrint = choosePrint
         interactorDeps.openAdvancedOptions = openAdvancedOptions
+        interactorDeps.openHelp = openHelp
         interactorDeps.audioDownloadsBuilder = AudioDownloadsBuilder(container: container)
         interactorDeps.searchBuilder = SearchBuilder(container: container)
         interactorDeps.localTranslationsRetriever = LocalTranslationsRetriever(databasesURL: container.databasesURL)
@@ -137,4 +149,5 @@ public struct QuranBuilder {
     let tagAyah: QuranAyahTagger?
     let choosePrint: QuranPrintChooser?
     let openAdvancedOptions: QuranAdvancedOptionsOpener?
+    let openHelp: QuranAdvancedOptionsOpener?
 }

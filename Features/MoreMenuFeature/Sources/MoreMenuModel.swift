@@ -60,4 +60,6 @@ public struct MoreMenuControlsState {
     public var focusMode = ConfigState.alwaysOff
     /// quran_android's Advanced Options, which the host app provides.
     public var advancedOptions = ConfigState.alwaysOff
+    /// quran_android's Help, the reader menu's last item, which the host app provides.
+    public var help = ConfigState.alwaysOff
 }

@@ -23,6 +23,7 @@ public protocol MoreMenuListener: AnyObject {
     func onMushafPrintTapped()
     func onFocusModeUpdated(to isFocusModeActive: Bool)
     func onAdvancedOptionsTapped()
+    func onHelpTapped()
 }
 
 extension MoreMenuListener {
@@ -38,6 +39,8 @@ extension MoreMenuListener {
     public func onFocusModeUpdated(to isFocusModeActive: Bool) {}
     /// Only menus that turn on `MoreMenuControlsState.advancedOptions` show the row.
     public func onAdvancedOptionsTapped() {}
+    /// Only menus that turn on `MoreMenuControlsState.help` show the row.
+    public func onHelpTapped() {}
 }
 
 @MainActor
@@ -287,6 +290,11 @@ final class MoreMenuViewModel: ObservableObject {
     func openAdvancedOptions() {
         logger.info("More Menu: advanced options tapped")
         listener?.onAdvancedOptionsTapped()
+    }
+
+    func openHelp() {
+        logger.info("More Menu: help tapped")
+        listener?.onHelpTapped()
     }
 
     // MARK: Private

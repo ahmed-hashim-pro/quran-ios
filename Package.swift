@@ -737,10 +737,12 @@ private func featuresTargets() -> [[Target]] {
         ], testDependencies: [
             "AnalyticsFake",
             "BatchDownloaderFake",
+            "Localization",
             "QueuePlayer",
             "QuranAudio",
             "QuranAudioKit",
             "QuranKit",
+            "QuranLocalization",
             "ReciterServiceFake",
             "SystemDependenciesFake",
         ]),

@@ -53,13 +53,15 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
     /// quran_android's focus mode brings the hidden bars back with a swipe from the top edge.
     var revealsBarsOnSwipeDownFromTop = false
 
-    /// How far the audio bar reaches above the window's bottom edge, or 0 while it's hidden.
+    /// How far the audio bar, with the reading modes above it, reaches above the window's bottom edge, or 0
+    /// while it's hidden.
     var bottomBarsHeight: CGFloat {
         guard let audioView, !audioBarHidden, let window else {
             return 0
         }
-        let audioBarTop = audioView.convert(audioView.bounds, to: window).minY
-        return max(0, window.bounds.height - audioBarTop)
+        let topBar = readingModeBarView ?? audioView
+        let barsTop = topBar.convert(topBar.bounds, to: window).minY
+        return max(0, window.bounds.height - barsTop)
     }
 
     override func layoutSubviews() {
@@ -94,6 +96,23 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
             .horizontalEdges()
             .bottom()
         updateAudioBarVisibility()
+        pinReadingModeBar()
+    }
+
+    /// quran_android floats the reading modes over the page, centered 16 points above the audio bar,
+    /// and moves them with the bars.
+    func addReadingModeBarView(_ barView: UIView) {
+        readingModeBarView = barView
+        addAutoLayoutSubview(barView)
+        NSLayoutConstraint.activate([
+            barView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            barView.leadingAnchor.constraint(
+                greaterThanOrEqualTo: safeAreaLayoutGuide.leadingAnchor,
+                constant: Self.readingModeBarSpacing
+            ),
+        ])
+        pinReadingModeBar()
+        updateReadingModeBarVisibility()
     }
 
     func setBarsHidden(_ hidden: Bool, animated: Bool = false, completion: (() -> Void)? = nil) {
@@ -124,7 +143,13 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
             animated: animated,
             stateChanged: translationStripShown && navigationBarStateChanged
         )
-        guard animateNavigationBar || animateAudioBar || animateTranslationStrip else {
+        let animateReadingModeBar = prepareBarForVisibilityTransition(
+            readingModeBarView,
+            hidden: hidden,
+            animated: animated,
+            stateChanged: audioBarStateChanged
+        )
+        guard animateNavigationBar || animateAudioBar || animateTranslationStrip || animateReadingModeBar else {
             completion?()
             return
         }
@@ -139,6 +164,9 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
             if animateTranslationStrip {
                 self.translationStripView?.alpha = hidden ? 0 : 1
             }
+            if animateReadingModeBar {
+                self.readingModeBarView?.alpha = hidden ? 0 : 1
+            }
         } completion: { [weak self] in
             guard let self, barsVisibilityAnimationID == animationID else { return }
             if animateNavigationBar, navigationBarHidden == hidden {
@@ -149,6 +177,9 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
             }
             if animateTranslationStrip {
                 updateTranslationStripVisibility()
+            }
+            if animateReadingModeBar, audioBarHidden == hidden {
+                updateReadingModeBarVisibility()
             }
             completion?()
         }
@@ -176,6 +207,8 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
         configureAudioBarScrollEdgeEffectIfNeeded()
         audioView?.layer.removeAllAnimations()
         updateAudioBarVisibility()
+        readingModeBarView?.layer.removeAllAnimations()
+        updateReadingModeBarVisibility()
     }
 
     func refreshScrollEdgeInteractions() {
@@ -185,7 +218,7 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
 
     @objc
     func onViewTapped(_ sender: UITapGestureRecognizer) {
-        for bar in [audioView, translationStripView].compactMap({ $0 }) where bar.isUserInteractionEnabled {
+        for bar in [audioView, translationStripView, readingModeBarView].compactMap({ $0 }) where bar.isUserInteractionEnabled {
             if bar.bounds.contains(sender.location(in: bar)) {
                 return
             }
@@ -221,8 +254,12 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
     private let tapGesture = UITapGestureRecognizer()
     private let swipeDownFromTopGesture = UIPanGestureRecognizer()
     private let topEdgeSwipeHeight: CGFloat = 32
+    private static let readingModeBarSpacing: CGFloat = 16
+
     private var audioView: UIView?
     private var translationStripView: UIView?
+    private var readingModeBarView: UIView?
+    private var readingModeBarBottom: NSLayoutConstraint?
     private var translationStripShown = false
     private var navigationBarHidden = false
     private var audioBarHidden = false
@@ -299,6 +336,20 @@ class QuranView: UIView, UIGestureRecognizerDelegate, UINavigationBarDelegate {
 
     private func updateAudioBarVisibility() {
         updateBarVisibility(audioView, hidden: audioBarHidden)
+    }
+
+    private func updateReadingModeBarVisibility() {
+        updateBarVisibility(readingModeBarView, hidden: audioBarHidden)
+    }
+
+    private func pinReadingModeBar() {
+        guard let readingModeBarView else {
+            return
+        }
+        readingModeBarBottom?.isActive = false
+        let barsTop = audioView?.topAnchor ?? safeAreaLayoutGuide.bottomAnchor
+        readingModeBarBottom = readingModeBarView.bottomAnchor.constraint(equalTo: barsTop, constant: -Self.readingModeBarSpacing)
+        readingModeBarBottom?.isActive = true
     }
 
     private var translationStripHidden: Bool {

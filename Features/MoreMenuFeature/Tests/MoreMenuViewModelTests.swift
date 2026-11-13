@@ -60,6 +60,20 @@ final class MoreMenuViewModelTests: XCTestCase {
         XCTAssertEqual(listener.advancedOptionsTaps, 1)
     }
 
+    func testHelpTellsTheReader() {
+        let listener = MoreMenuListenerSpy()
+        let sut = makeSut()
+        sut.listener = listener
+
+        sut.openHelp()
+
+        XCTAssertEqual(listener.helpTaps, 1)
+    }
+
+    func testHelpIsOffUnlessTheHostOffersIt() {
+        XCTAssertEqual(MoreMenuControlsState().help, .alwaysOff)
+    }
+
     // MARK: Private
 
     private let keys = ["lockOrientation", "landscapeOrientation"]
@@ -74,6 +88,7 @@ final class MoreMenuViewModelTests: XCTestCase {
 private final class MoreMenuListenerSpy: MoreMenuListener {
     private(set) var focusModeUpdates: [Bool] = []
     private(set) var advancedOptionsTaps = 0
+    private(set) var helpTaps = 0
 
     func onTranslationsSelectionsTapped() {}
     func onIsWordPointerActiveUpdated(to isWordPointerActive: Bool) {}
@@ -84,5 +99,9 @@ private final class MoreMenuListenerSpy: MoreMenuListener {
 
     func onAdvancedOptionsTapped() {
         advancedOptionsTaps += 1
+    }
+
+    func onHelpTapped() {
+        helpTaps += 1
     }
 }
