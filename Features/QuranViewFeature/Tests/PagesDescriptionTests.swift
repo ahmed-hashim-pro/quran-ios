@@ -47,6 +47,13 @@ final class PagesDescriptionTests: XCTestCase {
         )
     }
 
+    /// Foundation isolates each argument, so without a leading mark the line has no strong letter and lays out left to right.
+    func testTheArabicLineStartsRightToLeft() {
+        let page = [quran.pages[1]]
+        let text = page.localizedDescription(printName: Reading.warsh.printName(language: .arabic), language: .arabic)
+        XCTAssertEqual(text.first, "\u{200F}")
+    }
+
     func testEveryAndroidPrintHasANameInEnglishAndArabic() {
         for reading in Reading.androidReadings {
             for language in [Language.english, .arabic] {
@@ -69,6 +76,6 @@ final class PagesDescriptionTests: XCTestCase {
 
     /// Foundation wraps `%@` arguments of a right-to-left format in bidi isolates, U+2066 to U+2069.
     private func withoutBidiIsolates(_ text: String) -> String {
-        text.filter { !("\u{2066}" ... "\u{2069}").contains($0) }
+        text.filter { !("\u{2066}" ... "\u{2069}").contains($0) && $0 != "\u{200F}" }
     }
 }
